@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>神話時空地圖 - 極簡介面版</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --geo-dark: #1a1510;          
+      --geo-panel: rgba(26, 21, 19, 0.85); 
+      --geo-gold: #c69c6d;          
+      --geo-gold-bright: #e2b04a;   
+      --geo-text-main: #eaddca;     
+      --geo-text-sub: #a6917c;      
+      --geo-border: rgba(198, 156, 109, 0.4);
+    }
+
+    body { 
+      font-family: "Georgia", "Microsoft JhengHei", serif; 
+      background-color: #f0f8ff; 
+      display: flex; height: 100vh; overflow: hidden; color: var(--geo-text-main);
+    }
+    
+    .main-container { display: flex; width: 100%; height: 100vh; position: relative; overflow: hidden; }
+    #map { flex: 1; height: 100%; cursor: default; z-index: 1;}
+    .map-edit-mode { cursor: crosshair !important; border: 4px dashed var(--geo-gold-bright); }
+    .leaflet-tile { opacity: 1; }
+
+    .river-label { background: transparent !important; border: none !important; box-shadow: none !important; font-weight: bold; font-size: 0.9rem; pointer-events: none; }
+    .geo-label, .custom-text-label div { 
+      background: transparent !important; 
+      border: none !important; 
+      box-shadow: none !important; 
+      color: #1e293b; 
+      font-weight: 900; 
+      font-size: 0.8rem; 
+      text-shadow: 
+        -1px -1px 0 #fff,  
+         1px -1px 0 #fff,
+        -1px  1px 0 #fff,
+         1px  1px 0 #fff,
+         0px  2px 4px rgba(0,0,0,0.4);
+      white-space: nowrap; 
+      pointer-events: none; 
+    }
+    
+    .leaflet-tooltip-left::before, .leaflet-tooltip-right::before, .leaflet-tooltip-top::before, .leaflet-tooltip-bottom::before { display: none !important; }
+    .custom-text-label.country-huge div { font-size: 1rem; color: #0f172a; }
+    .glow-path { filter: drop-shadow(0px 0px 3px currentColor); transition: fill-opacity 0.3s, fill-color 0.3s; }
+
+    /* 智慧縮放隱藏魔法 */
+    .map-zoom-2 .size-medium, .map-zoom-2 .size-small, .map-zoom-2 .manual-province-label, .map-zoom-3 .size-medium, .map-zoom-3 .size-small, .map-zoom-3 .manual-province-label { display: none !important; }
+    .map-zoom-4 .size-small, .map-zoom-4 .manual-province-label { display: none !important; }
+    .map-zoom-5 .country-huge, .map-zoom-6 .country-huge, .map-zoom-7 .country-huge, .map-zoom-8 .country-huge { display: none !important; }
+
+    /* 【修正 2】左上角控制樞紐：移除標題，只保留按鈕與方框 */
+    .top-left-panel { position: absolute; left: 20px; top: 20px; z-index: 1000; background: var(--geo-panel); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--geo-border); border-radius: 12px; padding: 15px 10px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; width: 110px; }
+    .category-badge { background: rgba(0,0,0,0.6); color: #48cae4; border: 1px solid #48cae4; padding: 6px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; margin-bottom: 12px; cursor: pointer; user-select: none; transition: 0.3s; text-align: center; line-height: 1.2; width: 100%;}
+    .category-badge:hover { transform: scale(1.05); }
+    .icon-controls { display: flex; gap: 6px; width: 100%; justify-content: center; }
+    .icon-btn { background: rgba(0,0,0,0.4); color: var(--geo-gold); border: 1px solid var(--geo-border); width: 28px; height: 28px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+    .icon-btn:hover, .icon-btn.active { background: var(--geo-gold); color: var(--geo-dark); border-color: var(--geo-gold-bright);}
+
+    /* 左側直立透明時間線 */
+    .vertical-timeline-container { position: absolute; left: 20px; top: 110px; bottom: 30px; z-index: 1000; background: var(--geo-panel); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--geo-border); border-radius: 12px; padding: 20px 10px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; width: 110px; }
+    .timeline-scroll-area { flex: 1; width: 100%; margin-bottom: 15px; padding-right: 2px; overflow-y: auto; }
+    .timeline-scroll-area::-webkit-scrollbar { width: 4px; }
+    .timeline-scroll-area::-webkit-scrollbar-thumb { background: var(--geo-gold); border-radius: 2px;}
+    .timeline-track { position: relative; height: 600px; display: flex; justify-content: center; width: 100%; transition: height 0.3s ease; }
+    input[type=range][orient=vertical] { writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 4px; height: 100%; accent-color: var(--geo-gold-bright); cursor: pointer; background: rgba(0,0,0,0.6); border-radius: 5px; }
+    .timeline-labels { position: absolute; left: 55%; height: 100%; width: 40px; pointer-events: none; }
+    .timeline-labels span { position: absolute; transform: translateY(50%); font-size: 0.75rem; font-weight: bold; color: var(--geo-text-sub); white-space: nowrap; }
+    #currentEraDisplay { font-size: 0.85rem; font-weight: bold; color: var(--geo-gold-bright); text-align: center; }
+    #currentYearDisplay { font-size: 0.75rem; color: var(--geo-text-main); text-align: center; margin-top: 5px; }
+
+    /* 下方推演列與側邊欄 */
+    .ppt-controls { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 15px; background: var(--geo-panel); backdrop-filter: blur(10px); border: 1px solid var(--geo-border); padding: 8px 25px; border-radius: 30px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    .ppt-btn { background: transparent; color: var(--geo-gold-bright); border: none; padding: 6px 12px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 1.1rem; }
+    .ppt-btn:hover { color: #fff; transform: scale(1.1); }
+    .ppt-status { color: var(--geo-text-main); font-weight: bold; font-size: 0.9rem; letter-spacing: 2px; min-width: 80px; text-align: center;}
+    
+    .sidebar { position: absolute; right: -450px; top: 0; height: 100vh; width: 400px; background: var(--geo-panel); backdrop-filter: blur(15px); padding: 40px 30px; border-left: 2px solid var(--geo-gold); overflow-y: auto; z-index: 2000; box-shadow: -10px 0 30px rgba(0,0,0,0.5); transition: right 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .sidebar.open { right: 0; } 
+    .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--geo-text-sub); transition: 0.2s;}
+    .close-btn:hover { color: var(--geo-gold-bright); transform: scale(1.1); }
+    .story-card { background: transparent; margin-top: 10px; }
+    
+    .story-tag { display: inline-block; border: 1px solid var(--geo-gold); color: var(--geo-gold-bright); padding: 4px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; margin-bottom: 15px; background: rgba(0,0,0,0.4); }
+    .story-tag.holiday-tag { border-color: #ff595e; color: #ffadad; background: rgba(255, 89, 94, 0.15); }
+    .story-tag.idiom-tag { border-color: #b5e48c; color: #d9ed92; background: rgba(181, 228, 140, 0.15); }
+
+    .story-title { font-size: 1.6rem; color: var(--geo-text-main); margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);}
+    .story-location { font-size: 0.9rem; color: var(--geo-gold); margin-bottom: 20px; font-weight: bold;}
+    .story-content { line-height: 1.8; color: var(--geo-text-main); margin-bottom: 20px; font-size: 0.95rem; letter-spacing: 1px;}
+    .story-evidence { background: rgba(0,0,0,0.5); padding: 15px; border-left: 3px solid var(--geo-gold); font-size: 0.85rem; color: var(--geo-text-sub); margin-bottom: 20px; line-height: 1.6;}
+    .source-btn { display: inline-block; background: transparent; border: 1px solid var(--geo-gold); color: var(--geo-gold); text-decoration: none; padding: 8px 18px; border-radius: 4px; font-size: 0.85rem; transition: 0.3s; margin-right: 10px; margin-bottom: 10px;}
+    .source-btn:hover { background: var(--geo-gold); color: var(--geo-dark); }
+    .custom-map-icon { font-size: 30px; text-align: center; line-height: 30px; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.5)); transition: transform 0.2s; cursor: pointer; }
+    .custom-map-icon:hover { transform: scale(1.2); z-index: 1000 !important; }
+
+    /* 編輯器 */
+    .toolbar { position: absolute; top: 20px; left: 150px; z-index: 1000; display: flex; gap: 10px; }
+    .btn { padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer; border: 1px solid var(--geo-gold); background: var(--geo-panel); color: var(--geo-gold); backdrop-filter: blur(5px); transition: 0.3s; }
+    .btn:hover { background: var(--geo-gold); color: var(--geo-dark); }
+    .editor-panel { 
+      display: none; position: absolute; top: 70px; left: 150px; width: 340px; 
+      background: var(--geo-panel); backdrop-filter: blur(10px); padding: 20px; 
+      border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 1000; 
+      border: 1px solid var(--geo-gold); max-height: calc(100vh - 100px); overflow-y: auto;
+    }
+    .editor-panel::-webkit-scrollbar { width: 6px; }
+    .editor-panel::-webkit-scrollbar-thumb { background: var(--geo-gold); border-radius: 3px;}
+    
+    .editor-panel h3 { margin-bottom: 15px; color: var(--geo-gold-bright); font-size: 1.1rem; border-bottom: 1px solid var(--geo-border); padding-bottom: 8px; }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--geo-text-sub);}
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--geo-border); border-radius: 4px; background: rgba(0,0,0,0.6); color: var(--geo-text-main); font-family: inherit;}
+    .editor-actions { display: flex; justify-content: space-between; margin-top: 20px; }
+    .editor-actions button { padding: 8px 16px; border: 1px solid var(--geo-gold); border-radius: 4px; cursor: pointer; font-weight: bold; background: transparent; color: var(--geo-gold); transition: 0.3s;}
+    .editor-actions button:hover { background: var(--geo-gold); color: var(--geo-dark);}
+  </style>
+</head>
+<body>
+  <script src="data.js"></script>
+
+  <div class="main-container">
+    <div class="top-left-panel">
+      <!-- 移除標題，只保留切換方框 -->
+      <div id="categoryBadge" class="category-badge" onclick="toggleCategory()" title="點擊切換維度">神話、童話</div>
+      <div class="icon-controls">
+        <button id="btnOverview" class="icon-btn active" onclick="toggleOverview()" title="切換：全覽 / 依朝代">👁️</button>
+        <button class="icon-btn" onclick="zoomTimeline(1.5)" title="展開時間軸">➕</button>
+        <button class="icon-btn" onclick="zoomTimeline(0.66)" title="收攏時間軸">➖</button>
+      </div>
+    </div>
+
+    <div class="vertical-timeline-container">
+      <div class="timeline-scroll-area">
+        <div class="timeline-track" id="timelineTrack">
+          <input type="range" id="timeSlider" orient="vertical" min="-3000" max="2000" step="1" value="2000">
+          <div class="timeline-labels">
+            <span style="bottom: 100%">現代</span>
+            <span style="bottom: 87.3%">明清</span>
+            <span style="bottom: 79.2%">宋元</span>
+            <span style="bottom: 72.3%">唐</span>
+            <span style="bottom: 55.5%">秦漢</span>
+            <span style="bottom: 39%">周</span>
+            <span style="bottom: 18.6%">夏商</span>
+            <span style="bottom: 0%">神話</span>
+          </div>
+        </div>
+      </div>
+      <div id="currentEraDisplay">當前：全覽</div>
+      <div id="currentYearDisplay">所有卷宗</div>
+    </div>
+
+    <div class="ppt-controls">
+      <button class="ppt-btn" onclick="prevStory()" title="上一卷">◀</button>
+      <span class="ppt-status" id="pptProgress">- / -</span>
+      <button class="ppt-btn" onclick="nextStory()" title="下一卷">▶</button>
+    </div>
+
+    <div id="map"></div>
+    
+    <div class="toolbar">
+      <button class="btn" id="btnAdd" onclick="toggleEditMode()">➕ 締結新約</button>
+      <button class="btn" onclick="exportData()">📥 拓印卷宗</button>
+    </div>
+
+    <div class="editor-panel" id="editorPanel">
+      <h3>締結新約 (拖曳圖示定位)</h3>
+      <div style="display:flex; gap:5px;">
+        <div class="form-group" style="flex:1;"><label>陣眼(圖示)</label><input type="text" id="m_icon" value="🌟"></div>
+        <div class="form-group" style="flex:2;"><label>卷宗名稱</label><input type="text" id="m_title"></div>
+      </div>
+      <div style="display:flex; gap:5px;">
+        <div class="form-group" style="flex:1;">
+          <label>卷宗類型</label>
+          <select id="m_type">
+            <option value="神話、童話">神話、童話</option>
+            <option value="節日起源">節日起源</option>
+            <option value="成語故事">成語故事</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:1;"><label>紀元</label><input type="text" id="m_era"></div>
+        <div class="form-group" style="flex:1;"><label>年份</label><input type="number" id="m_year"></div>
+      </div>
+      <div class="form-group"><label>落點區域</label><input type="text" id="m_location"></div>
+      <div class="form-group"><label>影響省份(用逗號分隔)</label><input type="text" id="m_regions" placeholder="如: 山西,河南"></div>
+      <div class="form-group"><label>事蹟</label><textarea id="m_content" rows="2"></textarea></div>
+      <div class="form-group"><label>史籍考證</label><textarea id="m_evidence" rows="2"></textarea></div>
+      <div class="form-group">
+        <label>虛空終端 (網址，一行一個)</label>
+        <textarea id="m_link" rows="2" placeholder="https://...\nhttps://..."></textarea>
+      </div>
+      <div class="editor-actions">
+        <button onclick="cancelEdit()">取 消</button>
+        <button onclick="saveEdit()">銘 記</button>
+      </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+      <div class="close-btn" onclick="closeSidebar()">✖</div>
+      <div id="sidebarContent"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    let rawData = typeof mythsData !== 'undefined' ? mythsData : [];
+    
+    const categories = ["神話、童話", "節日起源", "成語故事"];
+    let currentCategoryIndex = 0;
+    let filteredStories = [];
+    
+    function updateFilteredStories() {
+      const currentCat = categories[currentCategoryIndex];
+      filteredStories = rawData.filter(s => (s.type || "神話、童話") === currentCat).sort((a, b) => a.year - b.year);
+    }
+
+    function toggleCategory() {
+      currentCategoryIndex = (currentCategoryIndex + 1) % categories.length;
+      const cat = categories[currentCategoryIndex];
+      const badge = document.getElementById('categoryBadge');
+      badge.innerText = cat;
+      
+      if (cat === "神話、童話") {
+        badge.style.borderColor = "#48cae4"; badge.style.color = "#48cae4";
+      } else if (cat === "節日起源") {
+        badge.style.borderColor = "#ff595e"; badge.style.color = "#ff595e";
+        badge.style.backgroundColor = "rgba(0,0,0,0.6)"; // 維持底色
+      } else {
+        badge.style.borderColor = "#b5e48c"; badge.style.color = "#b5e48c";
+      }
+
+      updateFilteredStories();
+      currentPptIndex = -1;
+      document.getElementById('pptProgress').innerText = `0 / ${filteredStories.length}`;
+      
+      activeRegions = [];
+      hoverRegions = [];
+      refreshHighlights();
+      
+      closeSidebar();
+      renderMarkers();
+    }
+
+    updateFilteredStories();
+
+    const map = L.map('map', { zoomControl: false, minZoom: 2 }).setView([35.0, 105.0], 4);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+      maxZoom: 18, attribution: '&copy; CARTO'
+    }).addTo(map);
+
+    function updateZoomClass() {
+      const z = map.getZoom();
+      const container = document.getElementById('map');
+      container.className = container.className.replace(/map-zoom-\d+/g, '');
+      container.classList.add('map-zoom-' + z);
+    }
+    map.on('zoomend', updateZoomClass);
+    updateZoomClass(); 
+
+    const yellowRiverCoords = [
+      [34.9, 96.0], [35.5, 97.5], [35.9, 99.0], [36.0, 103.8], [36.6, 104.9], 
+      [37.5, 105.1], [38.5, 106.3], [39.3, 106.7], [40.3, 106.9], [40.8, 108.3], 
+      [40.6, 110.0], [40.0, 111.3], [39.0, 111.5], [37.8, 110.5], [35.6, 110.6], 
+      [34.8, 113.6], [35.0, 114.5], [35.8, 116.0], [36.7, 117.0], [37.5, 118.5], [37.8, 119.0]
+    ];
+    const yangtzeRiverCoords = [
+      [33.4, 91.1], [32.5, 95.0], [30.5, 97.5], [28.5, 99.5], [26.8, 100.2], 
+      [26.6, 101.5], [28.0, 103.5], [28.8, 104.6], [29.0, 105.5], [29.6, 106.5], 
+      [30.0, 107.5], [30.8, 109.5], [30.7, 111.3], [30.0, 112.5], [30.6, 114.3], 
+      [30.2, 115.0], [29.8, 116.0], [30.5, 117.0], [31.3, 118.4], [32.0, 118.8], 
+      [32.0, 120.0], [31.8, 120.5], [31.2, 121.4]
+    ];
+    
+    L.polyline(yellowRiverCoords, {color: '#e2b04a', weight: 4, opacity: 0.8, className: 'glow-path'}).addTo(map);
+    L.polyline(yangtzeRiverCoords, {color: '#48cae4', weight: 4, opacity: 0.8, className: 'glow-path'}).addTo(map);
+
+    const zhDict = {
+      "Afghanistan":"阿富汗","Albania":"阿爾巴尼亞","Algeria":"阿爾及利亞","Angola":"安哥拉","Argentina":"阿根廷","Australia":"澳洲","Austria":"奧地利","Bangladesh":"孟加拉","Belarus":"白俄羅斯","Belgium":"比利時","Bolivia":"玻利維亞","Brazil":"巴西","Cambodia":"柬埔寨","Canada":"加拿大","Chile":"智利","Colombia":"哥倫比亞","Cuba":"古巴","Denmark":"丹麥","Ecuador":"厄瓜多","Egypt":"埃及","Ethiopia":"衣索比亞","Finland":"芬蘭","France":"法國","Germany":"德國","Greece":"希臘","Greenland":"格陵蘭","Hungary":"匈牙利","Iceland":"冰島","India":"印度","Indonesia":"印尼","Iran":"伊朗","Iraq":"伊拉克","Ireland":"愛爾蘭","Israel":"以色列","Italy":"義大利","Japan":"日本","Jordan":"約旦","Kazakhstan":"哈薩克","Kenya":"肯亞","North Korea":"北韓","South Korea":"韓國","Laos":"寮國","Libya":"利比亞","Malaysia":"馬來西亞","Mexico":"墨西哥","Mongolia":"蒙古","Morocco":"摩洛哥","Myanmar":"緬甸","Nepal":"尼泊爾","Netherlands":"荷蘭","New Zealand":"紐西蘭","Nigeria":"奈及利亞","Norway":"挪威","Pakistan":"巴基斯坦","Peru":"秘魯","Philippines":"菲律賓","Poland":"波蘭","Portugal":"葡萄牙","Russia":"俄羅斯","Saudi Arabia":"沙烏地阿拉伯","South Africa":"南非","Spain":"西班牙","Sri Lanka":"斯里蘭卡","Sweden":"瑞典","Switzerland":"瑞士","Syria":"敘利亞","Taiwan":"台灣","Thailand":"泰國","Turkey":"土耳其","Ukraine":"烏克蘭","United Kingdom":"英國","United States":"美國","Venezuela":"委內瑞拉","Vietnam":"越南"
+    };
+
+    const zhProvDict = {
+      "北京市":"北京", "天津市":"天津", "河北省":"河北", "山西省":"山西", "内蒙古自治区":"內蒙古", 
+      "辽宁省":"遼寧", "吉林省":"吉林", "黑龙江省":"黑龍江", "上海市":"上海", "江苏省":"江蘇", 
+      "浙江省":"浙江", "安徽省":"安徽", "福建省":"福建", "江西省":"江西", "山东省":"山東", 
+      "河南省":"河南", "湖北省":"湖北", "湖南省":"湖南", "广东省":"廣東", "广西壮族自治区":"廣西", 
+      "海南省":"海南", "重庆市":"重慶", "四川省":"四川", "贵州省":"貴州", "云南省":"雲南", 
+      "西藏自治区":"西藏", "陕西省":"陝西", "甘肃省":"甘肅", "青海省":"青海", "宁夏回族自治区":"寧夏", 
+      "新疆维吾尔自治区":"新疆"
+    };
+    
+    const chinaProvinces = Object.values(zhProvDict).concat(["香港", "澳門"]);
+    const skipAutoLabels = ["Russia", "United States", "Canada", "France", "United Kingdom", "Australia", "New Zealand"];
+
+    const regionLayers = {};
+
+    fetch('https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json')
+      .then(res => res.json())
+      .then(data => {
+        data.features = data.features.filter(f => f.id !== 'CHN' && f.properties.name !== 'China' && f.properties.name !== 'Hong Kong' && f.properties.name !== 'Macau');
+        L.geoJSON(data, { 
+          style: { color: '#000000', weight: 0.4, fillOpacity: 0 },
+          onEachFeature: function(feature, layer) {
+            if (feature.properties && feature.properties.name) {
+              const engName = feature.properties.name;
+              const zhName = zhDict[engName] || engName;
+              regionLayers[zhName] = layer; 
+              
+              if (!skipAutoLabels.includes(engName)) {
+                const bounds = layer.getBounds();
+                const area = (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
+                let sizeClass = 'size-small';
+                if (area > 50 || zhName === '台灣' || zhName === '日本' || zhName === '韓國') sizeClass = 'size-huge';
+                else if (area > 10) sizeClass = 'size-large';
+                else if (area > 2) sizeClass = 'size-medium';
+                layer.bindTooltip(zhName, { permanent: true, direction: 'center', className: `geo-label ${sizeClass}` });
+              }
+            }
+          }
+        }).addTo(map);
+      });
+
+    fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+      .then(res => res.json())
+      .then(data => {
+        data.features = data.features.filter(f => f.properties.name !== '台湾省');
+        L.geoJSON(data, { 
+          style: { color: '#000000', weight: 0.4, fillOpacity: 0, dashArray: '2, 3' },
+          onEachFeature: function(feature, layer) {
+            if (feature.properties && feature.properties.name) {
+              const provName = zhProvDict[feature.properties.name] || feature.properties.name;
+              regionLayers[provName] = layer; 
+            }
+          }
+        }).addTo(map);
+      }).catch(() => console.log("無外網環境，略過中國 GeoJSON 邊界繪製"));
+
+    const manualLabels = [
+      { name: "中國", coords: [35.0, 104.0], isCountry: true }, { name: "俄羅斯", coords: [61.5, 95.3], isCountry: true },
+      { name: "美國", coords: [39.8, -98.5], isCountry: true }, { name: "加拿大", coords: [56.1, -106.3], isCountry: true },
+      { name: "法國", coords: [46.2, 2.2], isCountry: true }, { name: "英國", coords: [52.3, -1.5], isCountry: true },
+      { name: "澳洲", coords: [-25.2, 133.7], isCountry: true }, { name: "紐西蘭", coords: [-40.9, 174.8], isCountry: true },
+      
+      { name: "黃河", coords: [37.5, 110.0], isRiver: true, color: "#e2b04a" }, 
+      { name: "長江", coords: [30.5, 110.0], isRiver: true, color: "#48cae4" },
+
+      { name: "北京", coords: [40.2, 116.4] }, { name: "天津", coords: [39.1, 117.2] }, { name: "河北", coords: [38.0, 115.5] },
+      { name: "山西", coords: [37.8, 112.5] }, { name: "內蒙古", coords: [44.0, 113.0] }, { name: "遼寧", coords: [41.8, 123.4] },
+      { name: "吉林", coords: [43.8, 126.5] }, { name: "黑龍江", coords: [47.8, 127.9] }, { name: "上海", coords: [31.2, 121.4] },
+      { name: "江蘇", coords: [33.0, 119.7] }, { name: "浙江", coords: [29.0, 119.9] }, { name: "安徽", coords: [31.8, 117.2] },
+      { name: "福建", coords: [26.0, 118.0] }, { name: "江西", coords: [27.6, 115.9] }, { name: "山東", coords: [36.2, 118.0] },
+      { name: "河南", coords: [33.8, 113.6] }, { name: "湖北", coords: [31.0, 112.2] }, { name: "湖南", coords: [27.3, 111.7] },
+      { name: "廣東", coords: [23.3, 113.2] }, { name: "廣西", coords: [23.8, 108.8] }, { name: "海南", coords: [19.0, 109.8] },
+      { name: "重慶", coords: [30.0, 107.5] }, { name: "四川", coords: [30.0, 102.5] }, { name: "貴州", coords: [26.8, 106.7] },
+      { name: "雲南", coords: [25.0, 101.5] }, { name: "西藏", coords: [31.5, 87.0] }, { name: "陝西", coords: [35.0, 109.0] },
+      { name: "甘肅", coords: [37.8, 101.0] }, { name: "青海", coords: [35.5, 96.0] }, { name: "寧夏", coords: [37.5, 106.0] },
+      { name: "新疆", coords: [41.5, 85.0] }, { name: "香港", coords: [22.3, 114.1] }, { name: "澳門", coords: [22.1, 113.5] }
+    ];
+
+    const labelGroup = L.layerGroup().addTo(map);
+    manualLabels.forEach(label => {
+      let extraClass = label.isCountry ? 'country-huge' : 'manual-province-label';
+      let fontColor = label.isRiver ? label.color : '#1e293b';
+      if(label.isRiver) extraClass = 'river-label';
+
+      const textIcon = L.divIcon({
+        className: `custom-text-label ${extraClass}`,
+        html: `<div style="color:${fontColor}; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0px 2px 3px rgba(0,0,0,0.4);">${label.name}</div>`,
+        iconSize: [40, 20], iconAnchor: [20, 10]
+      });
+      L.marker(label.coords, { icon: textIcon, interactive: false }).addTo(labelGroup);
+    });
+
+    const markersGroup = L.layerGroup().addTo(map);
+    
+    let activeRegions = []; 
+    let hoverRegions = [];
+
+    function refreshHighlights() {
+      for(let r in regionLayers) {
+        regionLayers[r].setStyle({ fillOpacity: 0 });
+      }
+
+      const getActualRegions = (regionsArray) => {
+        let res = [];
+        regionsArray.forEach(r => {
+          if(r === "中國") res.push(...chinaProvinces);
+          else res.push(r);
+        });
+        return res;
+      };
+
+      const actualHover = getActualRegions(hoverRegions);
+      const actualActive = getActualRegions(activeRegions);
+
+      actualHover.forEach(r => {
+        if(regionLayers[r] && !actualActive.includes(r)) {
+          regionLayers[r].setStyle({ fillOpacity: 0.2, fillColor: '#c69c6d' });
+        }
+      });
+
+      actualActive.forEach(r => {
+        if(regionLayers[r]) {
+          regionLayers[r].setStyle({ fillOpacity: 0.4, fillColor: '#e2b04a' });
+        }
+      });
+    }
+
+    let isEditMode = false;
+    let tempMarker = null;
+    
+    const eras = [
+      { name: "現代", start: 1912, end: 2026 }, { name: "明清", start: 1368, end: 1911 },
+      { name: "宋元", start: 907, end: 1367 }, { name: "隋唐魏晉", start: 220, end: 906 },
+      { name: "秦漢", start: -221, end: 219 }, { name: "周", start: -1046, end: -222 },
+      { name: "夏商", start: -2070, end: -1047 }, { name: "神話", start: -5000, end: -2071 }
+    ];
+
+    let isOverviewMode = true;
+    let currentPptIndex = -1;
+    let currentTrackHeight = 600; 
+
+    function zoomTimeline(factor) {
+      currentTrackHeight *= factor;
+      currentTrackHeight = Math.max(200, Math.min(currentTrackHeight, 3000));
+      document.getElementById('timelineTrack').style.height = currentTrackHeight + 'px';
+    }
+
+    function goToStory(index) {
+      if(index < 0 || index >= filteredStories.length) return;
+      currentPptIndex = index;
+      const story = filteredStories[index];
+
+      document.getElementById('timeSlider').value = story.year;
+      updateTimelineText();
+
+      if (!isOverviewMode) renderMarkers(); 
+
+      activeRegions = story.regions || [];
+      refreshHighlights();
+
+      showStoryDetails(story);
+      map.flyTo(story.coords, 5, { duration: 1.2 });
+      document.getElementById('pptProgress').innerText = `卷 ${index + 1} / ${filteredStories.length}`;
+    }
+
+    function nextStory() {
+      if(filteredStories.length === 0) return;
+      let nextIdx = currentPptIndex + 1;
+      if(nextIdx >= filteredStories.length) nextIdx = 0; 
+      goToStory(nextIdx);
+    }
+    function prevStory() {
+      if(filteredStories.length === 0) return;
+      let prevIdx = currentPptIndex - 1;
+      if(prevIdx < 0) prevIdx = filteredStories.length - 1;
+      goToStory(prevIdx);
+    }
+
+    function getEraByYear(year) { return eras.find(e => year >= e.start && year <= e.end) || eras[eras.length - 1]; }
+
+    function updateTimelineText() {
+      const currentYear = parseInt(document.getElementById('timeSlider').value);
+      const currentEra = getEraByYear(currentYear);
+      const yearText = currentYear < 0 ? `西元前 ${Math.abs(currentYear)} 年` : `西元 ${currentYear} 年`;
+
+      if (isOverviewMode) {
+        document.getElementById('currentEraDisplay').innerText = "當前：全覽";
+        document.getElementById('currentYearDisplay').innerText = "所有卷宗";
+      } else {
+        document.getElementById('currentEraDisplay').innerText = `紀元：${currentEra.name}`;
+        document.getElementById('currentYearDisplay').innerText = yearText;
+      }
+    }
+
+    function toggleOverview() {
+      isOverviewMode = !isOverviewMode;
+      const btn = document.getElementById('btnOverview');
+      if (isOverviewMode) btn.classList.add('active');
+      else btn.classList.remove('active');
+      updateTimelineText();
+      renderMarkers();
+    }
+
+    document.getElementById('timeSlider').addEventListener('input', () => {
+      if (isOverviewMode) toggleOverview(); 
+      updateTimelineText();
+      renderMarkers();
+    });
+
+    function renderMarkers() {
+      markersGroup.clearLayers();
+      const currentYear = parseInt(document.getElementById('timeSlider').value);
+      const currentEra = getEraByYear(currentYear);
+
+      filteredStories.forEach(story => {
+        if (!isOverviewMode && (story.year < currentEra.start || story.year > currentEra.end)) return;
+
+        const customIcon = L.divIcon({ html: `<div>${story.icon}</div>`, className: 'custom-map-icon', iconSize: [36, 36], iconAnchor: [18, 18] });
+        const marker = L.marker(story.coords, { icon: customIcon }).addTo(markersGroup);
+        
+        marker.on('mouseover', () => {
+          hoverRegions = story.regions || [];
+          refreshHighlights();
+        });
+        marker.on('mouseout', () => {
+          hoverRegions = [];
+          refreshHighlights();
+        });
+        
+        marker.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          if(isEditMode) return; 
+          const idx = filteredStories.findIndex(s => s.id === story.id);
+          goToStory(idx);
+        });
+      });
+    }
+
+    const sidebar = document.getElementById('sidebar');
+    function showStoryDetails(story) {
+      const yearText = story.year < 0 ? `西元前 ${Math.abs(story.year)} 年` : `西元 ${story.year} 年`;
+      
+      let linkBtns = '';
+      if (story.link) {
+        const links = story.link.split('\n').map(l => l.trim()).filter(l => l);
+        links.forEach((l, i) => {
+          linkBtns += `<a href="${l}" target="_blank" class="source-btn">🔗 查閱終端 ${links.length > 1 ? (i+1) : ''}</a>`;
+        });
+      }
+      
+      const sType = story.type || "神話、童話";
+      let typeClass = "";
+      if (sType === "節日起源") typeClass = "holiday-tag";
+      if (sType === "成語故事") typeClass = "idiom-tag";
+
+      document.getElementById('sidebarContent').innerHTML = `
+        <div class="story-card">
+          <span class="story-tag ${typeClass}">${sType} | ${story.era} | ${yearText}</span>
+          <h2 class="story-title">${story.icon} ${story.title}</h2>
+          <div class="story-location">📍 落點：${story.location}</div>
+          <p class="story-content">${story.content}</p>
+          <div class="story-evidence"><strong>📜 史籍考證：</strong><br>${story.evidence || "佚失"}</div>
+          ${linkBtns}
+        </div>
+      `;
+      sidebar.classList.add('open');
+    }
+
+    function closeSidebar() { sidebar.classList.remove('open'); }
+    map.on('click', function() { if(!isEditMode) closeSidebar(); });
+
+    function toggleEditMode() {
+      isEditMode = !isEditMode;
+      const btn = document.getElementById('btnAdd');
+      if(isEditMode) {
+        btn.innerText = "❌ 中止締約";
+        btn.style.borderColor = "#ff4d4f";
+        btn.style.color = "#ff4d4f";
+        document.getElementById('map').classList.add('map-edit-mode');
+        closeSidebar();
+      } else {
+        cancelEdit();
+      }
+    }
+
+    map.on('click', function(e) {
+      if(!isEditMode) return;
+      if(tempMarker) map.removeLayer(tempMarker);
+
+      const latlng = e.latlng;
+      tempMarker = L.marker(latlng, { draggable: true }).addTo(map);
+
+      document.getElementById('editorPanel').style.display = 'block';
+      document.getElementById('map').classList.remove('map-edit-mode');
+    });
+
+    function cancelEdit() {
+      isEditMode = false;
+      const btn = document.getElementById('btnAdd');
+      btn.innerText = "➕ 締結新約";
+      btn.style.borderColor = "var(--geo-gold)";
+      btn.style.color = "var(--geo-gold)";
+      document.getElementById('map').classList.remove('map-edit-mode');
+      document.getElementById('editorPanel').style.display = 'none';
+      if(tempMarker) map.removeLayer(tempMarker);
+      tempMarker = null;
+    }
+
+    function saveEdit() {
+      if(!tempMarker) return alert("請先於地圖點定陣眼！");
+      const regionInput = document.getElementById('m_regions').value;
+      const regionsArray = regionInput ? regionInput.split(',').map(s => s.trim()) : ["中國"];
+      
+      const newMyth = {
+        id: "m" + Date.now(),
+        type: document.getElementById('m_type').value || "神話、童話",
+        title: document.getElementById('m_title').value || "未知卷宗",
+        icon: document.getElementById('m_icon').value || "📍",
+        era: document.getElementById('m_era').value || "未知",
+        year: parseInt(document.getElementById('m_year').value) || 0,
+        location: document.getElementById('m_location').value || "未知",
+        coords: [parseFloat(tempMarker.getLatLng().lat.toFixed(4)), parseFloat(tempMarker.getLatLng().lng.toFixed(4))],
+        regions: regionsArray,
+        content: document.getElementById('m_content').value,
+        evidence: document.getElementById('m_evidence').value,
+        link: document.getElementById('m_link').value
+      };
+
+      rawData.push(newMyth);
+      updateFilteredStories(); 
+      cancelEdit();
+      renderMarkers();
+      
+      document.querySelectorAll('#editorPanel input[type="text"], #editorPanel input[type="number"], #editorPanel textarea').forEach(el => el.value = '');
+      document.getElementById('m_icon').value = '🌟';
+    }
+
+    function exportData() {
+      const fileContent = `const mythsData = ${JSON.stringify(rawData, null, 2)};`;
+      const blob = new Blob([fileContent], { type: "text/javascript;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "data.js";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    updateTimelineText();
+    renderMarkers();
+    document.getElementById('pptProgress').innerText = `0 / ${filteredStories.length}`;
+  </script>
+</body>
+</html>
