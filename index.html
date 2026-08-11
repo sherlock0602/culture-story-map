@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>神話時空地圖 - 極簡介面版</title>
+  <title>神話時空地圖 - 大字體護眼版</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,12 +18,7 @@
       --geo-border: rgba(198, 156, 109, 0.4);
     }
 
-    body { 
-      font-family: "Georgia", "Microsoft JhengHei", serif; 
-      background-color: #f0f8ff; 
-      display: flex; height: 100vh; overflow: hidden; color: var(--geo-text-main);
-    }
-    
+    body { font-family: "Georgia", "Microsoft JhengHei", serif; background-color: #f0f8ff; display: flex; height: 100vh; overflow: hidden; color: var(--geo-text-main); }
     .main-container { display: flex; width: 100%; height: 100vh; position: relative; overflow: hidden; }
     #map { flex: 1; height: 100%; cursor: default; z-index: 1;}
     .map-edit-mode { cursor: crosshair !important; border: 4px dashed var(--geo-gold-bright); }
@@ -31,41 +26,27 @@
 
     .river-label { background: transparent !important; border: none !important; box-shadow: none !important; font-weight: bold; font-size: 0.9rem; pointer-events: none; }
     .geo-label, .custom-text-label div { 
-      background: transparent !important; 
-      border: none !important; 
-      box-shadow: none !important; 
-      color: #1e293b; 
-      font-weight: 900; 
-      font-size: 0.8rem; 
-      text-shadow: 
-        -1px -1px 0 #fff,  
-         1px -1px 0 #fff,
-        -1px  1px 0 #fff,
-         1px  1px 0 #fff,
-         0px  2px 4px rgba(0,0,0,0.4);
-      white-space: nowrap; 
-      pointer-events: none; 
+      background: transparent !important; border: none !important; box-shadow: none !important; 
+      color: #1e293b; font-weight: 900; font-size: 0.8rem; 
+      text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0px 2px 4px rgba(0,0,0,0.4);
+      white-space: nowrap; pointer-events: none; 
     }
-    
     .leaflet-tooltip-left::before, .leaflet-tooltip-right::before, .leaflet-tooltip-top::before, .leaflet-tooltip-bottom::before { display: none !important; }
     .custom-text-label.country-huge div { font-size: 1rem; color: #0f172a; }
     .glow-path { filter: drop-shadow(0px 0px 3px currentColor); transition: fill-opacity 0.3s, fill-color 0.3s; }
 
-    /* 智慧縮放隱藏魔法 */
     .map-zoom-2 .size-medium, .map-zoom-2 .size-small, .map-zoom-2 .manual-province-label, .map-zoom-3 .size-medium, .map-zoom-3 .size-small, .map-zoom-3 .manual-province-label { display: none !important; }
     .map-zoom-4 .size-small, .map-zoom-4 .manual-province-label { display: none !important; }
     .map-zoom-5 .country-huge, .map-zoom-6 .country-huge, .map-zoom-7 .country-huge, .map-zoom-8 .country-huge { display: none !important; }
 
-    /* 【修正 2】左上角控制樞紐：移除標題，只保留按鈕與方框 */
-    .top-left-panel { position: absolute; left: 20px; top: 20px; z-index: 1000; background: var(--geo-panel); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--geo-border); border-radius: 12px; padding: 15px 10px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; width: 110px; }
+    .top-left-panel { position: absolute; left: 20px; top: 20px; z-index: 1000; background: var(--geo-panel); backdrop-filter: blur(12px); border: 1px solid var(--geo-border); border-radius: 12px; padding: 15px 10px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; width: 110px; }
     .category-badge { background: rgba(0,0,0,0.6); color: #48cae4; border: 1px solid #48cae4; padding: 6px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; margin-bottom: 12px; cursor: pointer; user-select: none; transition: 0.3s; text-align: center; line-height: 1.2; width: 100%;}
     .category-badge:hover { transform: scale(1.05); }
     .icon-controls { display: flex; gap: 6px; width: 100%; justify-content: center; }
     .icon-btn { background: rgba(0,0,0,0.4); color: var(--geo-gold); border: 1px solid var(--geo-border); width: 28px; height: 28px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
     .icon-btn:hover, .icon-btn.active { background: var(--geo-gold); color: var(--geo-dark); border-color: var(--geo-gold-bright);}
 
-    /* 左側直立透明時間線 */
-    .vertical-timeline-container { position: absolute; left: 20px; top: 110px; bottom: 30px; z-index: 1000; background: var(--geo-panel); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--geo-border); border-radius: 12px; padding: 20px 10px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; width: 110px; }
+    .vertical-timeline-container { position: absolute; left: 20px; top: 110px; bottom: 30px; z-index: 1000; background: var(--geo-panel); backdrop-filter: blur(12px); border: 1px solid var(--geo-border); border-radius: 12px; padding: 20px 10px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; width: 110px; }
     .timeline-scroll-area { flex: 1; width: 100%; margin-bottom: 15px; padding-right: 2px; overflow-y: auto; }
     .timeline-scroll-area::-webkit-scrollbar { width: 4px; }
     .timeline-scroll-area::-webkit-scrollbar-thumb { background: var(--geo-gold); border-radius: 2px;}
@@ -76,59 +57,80 @@
     #currentEraDisplay { font-size: 0.85rem; font-weight: bold; color: var(--geo-gold-bright); text-align: center; }
     #currentYearDisplay { font-size: 0.75rem; color: var(--geo-text-main); text-align: center; margin-top: 5px; }
 
-    /* 下方推演列與側邊欄 */
     .ppt-controls { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 15px; background: var(--geo-panel); backdrop-filter: blur(10px); border: 1px solid var(--geo-border); padding: 8px 25px; border-radius: 30px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
     .ppt-btn { background: transparent; color: var(--geo-gold-bright); border: none; padding: 6px 12px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 1.1rem; }
     .ppt-btn:hover { color: #fff; transform: scale(1.1); }
     .ppt-status { color: var(--geo-text-main); font-weight: bold; font-size: 0.9rem; letter-spacing: 2px; min-width: 80px; text-align: center;}
     
-    .sidebar { position: absolute; right: -450px; top: 0; height: 100vh; width: 400px; background: var(--geo-panel); backdrop-filter: blur(15px); padding: 40px 30px; border-left: 2px solid var(--geo-gold); overflow-y: auto; z-index: 2000; box-shadow: -10px 0 30px rgba(0,0,0,0.5); transition: right 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    /* 側邊欄加寬，以容納更大的字體 */
+    .sidebar { position: absolute; right: -500px; top: 0; height: 100vh; width: 460px; background: var(--geo-panel); backdrop-filter: blur(15px); padding: 40px 30px; border-left: 2px solid var(--geo-gold); overflow-y: auto; z-index: 2000; box-shadow: -10px 0 30px rgba(0,0,0,0.5); transition: right 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); scroll-behavior: smooth;}
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--geo-gold); border-radius: 3px;}
     .sidebar.open { right: 0; } 
     .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--geo-text-sub); transition: 0.2s;}
     .close-btn:hover { color: var(--geo-gold-bright); transform: scale(1.1); }
     .story-card { background: transparent; margin-top: 10px; }
     
-    .story-tag { display: inline-block; border: 1px solid var(--geo-gold); color: var(--geo-gold-bright); padding: 4px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; margin-bottom: 15px; background: rgba(0,0,0,0.4); }
+    .story-tag { display: inline-block; border: 1px solid var(--geo-gold); color: var(--geo-gold-bright); padding: 4px 12px; font-size: 0.85rem; font-weight: bold; border-radius: 4px; margin-bottom: 15px; background: rgba(0,0,0,0.4); }
     .story-tag.holiday-tag { border-color: #ff595e; color: #ffadad; background: rgba(255, 89, 94, 0.15); }
     .story-tag.idiom-tag { border-color: #b5e48c; color: #d9ed92; background: rgba(181, 228, 140, 0.15); }
+    .story-tag.poet-tag { border-color: #c77dff; color: #e0aaff; background: rgba(199, 125, 255, 0.15); }
 
-    .story-title { font-size: 1.6rem; color: var(--geo-text-main); margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);}
-    .story-location { font-size: 0.9rem; color: var(--geo-gold); margin-bottom: 20px; font-weight: bold;}
-    .story-content { line-height: 1.8; color: var(--geo-text-main); margin-bottom: 20px; font-size: 0.95rem; letter-spacing: 1px;}
-    .story-evidence { background: rgba(0,0,0,0.5); padding: 15px; border-left: 3px solid var(--geo-gold); font-size: 0.85rem; color: var(--geo-text-sub); margin-bottom: 20px; line-height: 1.6;}
-    .source-btn { display: inline-block; background: transparent; border: 1px solid var(--geo-gold); color: var(--geo-gold); text-decoration: none; padding: 8px 18px; border-radius: 4px; font-size: 0.85rem; transition: 0.3s; margin-right: 10px; margin-bottom: 10px;}
+    /* 【重要】字體放大區 */
+    .story-title { font-size: 1.8rem; color: var(--geo-text-main); margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);}
+    .story-location { font-size: 1.05rem; color: var(--geo-gold); margin-bottom: 15px; font-weight: bold;}
+    .story-content { line-height: 1.8; color: var(--geo-text-main); margin-bottom: 20px; font-size: 1.1rem; letter-spacing: 1px;}
+    .story-evidence { background: rgba(0,0,0,0.5); padding: 15px; border-left: 3px solid var(--geo-gold); font-size: 1rem; color: var(--geo-text-sub); margin-bottom: 20px; line-height: 1.6;}
+    
+    .source-btn { display: inline-block; background: transparent; border: 1px solid var(--geo-gold); color: var(--geo-gold); text-decoration: none; padding: 8px 18px; border-radius: 4px; font-size: 0.9rem; transition: 0.3s; margin-right: 10px; margin-bottom: 10px; cursor: pointer;}
     .source-btn:hover { background: var(--geo-gold); color: var(--geo-dark); }
     .custom-map-icon { font-size: 30px; text-align: center; line-height: 30px; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.5)); transition: transform 0.2s; cursor: pointer; }
     .custom-map-icon:hover { transform: scale(1.2); z-index: 1000 !important; }
+
+    details.fp-item { background: rgba(0,0,0,0.4); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #c77dff; overflow: hidden; transition: background-color 0.5s; }
+    details.fp-item summary { font-weight: bold; color: #e0aaff; font-size: 1.1rem; padding: 12px; cursor: pointer; list-style-type: none; display: flex; justify-content: space-between; align-items: center; outline: none; }
+    details.fp-item summary::-webkit-details-marker { display: none; }
+    details.fp-item summary::after { content: "▼"; font-size: 0.9rem; transition: 0.3s; }
+    details.fp-item[open] summary::after { transform: rotate(180deg); }
+    .fp-content-box { padding: 0 12px 12px 12px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; }
+    .fp-content-box p { font-size: 1rem; color: var(--geo-text-sub); margin: 8px 0; line-height: 1.6; }
+    .fp-poem { color: var(--geo-gold-bright) !important; font-style: italic; font-size: 1.05rem !important;}
 
     /* 編輯器 */
     .toolbar { position: absolute; top: 20px; left: 150px; z-index: 1000; display: flex; gap: 10px; }
     .btn { padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer; border: 1px solid var(--geo-gold); background: var(--geo-panel); color: var(--geo-gold); backdrop-filter: blur(5px); transition: 0.3s; }
     .btn:hover { background: var(--geo-gold); color: var(--geo-dark); }
     .editor-panel { 
-      display: none; position: absolute; top: 70px; left: 150px; width: 340px; 
+      display: none; position: absolute; top: 70px; left: 150px; width: 400px; 
       background: var(--geo-panel); backdrop-filter: blur(10px); padding: 20px; 
       border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 1000; 
       border: 1px solid var(--geo-gold); max-height: calc(100vh - 100px); overflow-y: auto;
     }
     .editor-panel::-webkit-scrollbar { width: 6px; }
     .editor-panel::-webkit-scrollbar-thumb { background: var(--geo-gold); border-radius: 3px;}
-    
-    .editor-panel h3 { margin-bottom: 15px; color: var(--geo-gold-bright); font-size: 1.1rem; border-bottom: 1px solid var(--geo-border); padding-bottom: 8px; }
+    .editor-panel h3 { margin-bottom: 15px; color: var(--geo-gold-bright); font-size: 1.1rem; border-bottom: 1px solid var(--geo-border); padding-bottom: 8px; display:flex; justify-content: space-between;}
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--geo-text-sub);}
     .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--geo-border); border-radius: 4px; background: rgba(0,0,0,0.6); color: var(--geo-text-main); font-family: inherit;}
     .editor-actions { display: flex; justify-content: space-between; margin-top: 20px; }
     .editor-actions button { padding: 8px 16px; border: 1px solid var(--geo-gold); border-radius: 4px; cursor: pointer; font-weight: bold; background: transparent; color: var(--geo-gold); transition: 0.3s;}
     .editor-actions button:hover { background: var(--geo-gold); color: var(--geo-dark);}
+    
+    #dynamicFootprints { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--geo-border); }
+    .fp-edit-box { background: rgba(0,0,0,0.3); padding: 10px; margin-bottom: 10px; border-left: 2px solid #c77dff; position: relative; border-radius: 4px;}
+    .fp-remove-btn { position: absolute; top: 5px; right: 5px; background: #ff4d4f; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; line-height: 20px; text-align: center;}
+    .add-fp-btn { width: 100%; padding: 8px; background: transparent; border: 1px dashed #c77dff; color: #c77dff; border-radius: 4px; cursor: pointer; transition: 0.3s; font-weight: bold; margin-top: 5px;}
+    .add-fp-btn:hover { background: rgba(199, 125, 255, 0.2); }
   </style>
 </head>
 <body>
-  <script src="data.js"></script>
+  <script src="data_myths.js"></script>
+  <script src="data_festivals.js"></script>
+  <script src="data_idioms.js"></script>
+  <script src="data_poets.js"></script>
 
   <div class="main-container">
     <div class="top-left-panel">
-      <!-- 移除標題，只保留切換方框 -->
       <div id="categoryBadge" class="category-badge" onclick="toggleCategory()" title="點擊切換維度">神話、童話</div>
       <div class="icon-controls">
         <button id="btnOverview" class="icon-btn active" onclick="toggleOverview()" title="切換：全覽 / 依朝代">👁️</button>
@@ -171,7 +173,8 @@
     </div>
 
     <div class="editor-panel" id="editorPanel">
-      <h3>締結新約 (拖曳圖示定位)</h3>
+      <h3><span id="editorTitle">締結新約</span> <span style="font-size:0.8rem; cursor:pointer;" onclick="cancelEdit()">✖</span></h3>
+      <input type="hidden" id="m_id">
       <div style="display:flex; gap:5px;">
         <div class="form-group" style="flex:1;"><label>陣眼(圖示)</label><input type="text" id="m_icon" value="🌟"></div>
         <div class="form-group" style="flex:2;"><label>卷宗名稱</label><input type="text" id="m_title"></div>
@@ -179,23 +182,33 @@
       <div style="display:flex; gap:5px;">
         <div class="form-group" style="flex:1;">
           <label>卷宗類型</label>
-          <select id="m_type">
+          <select id="m_type" onchange="checkType()">
             <option value="神話、童話">神話、童話</option>
             <option value="節日起源">節日起源</option>
             <option value="成語故事">成語故事</option>
+            <option value="詩人軌跡">詩人軌跡</option>
           </select>
         </div>
         <div class="form-group" style="flex:1;"><label>紀元</label><input type="text" id="m_era"></div>
         <div class="form-group" style="flex:1;"><label>年份</label><input type="number" id="m_year"></div>
       </div>
-      <div class="form-group"><label>落點區域</label><input type="text" id="m_location"></div>
-      <div class="form-group"><label>影響省份(用逗號分隔)</label><input type="text" id="m_regions" placeholder="如: 山西,河南"></div>
-      <div class="form-group"><label>事蹟</label><textarea id="m_content" rows="2"></textarea></div>
-      <div class="form-group"><label>史籍考證</label><textarea id="m_evidence" rows="2"></textarea></div>
+      <div class="form-group"><label>落點區域 (主要)</label><input type="text" id="m_location"></div>
+      <div class="form-group"><label>影響省份(用逗號分隔)</label><input type="text" id="m_regions" placeholder="如: 四川,湖北,陝西"></div>
+      
+      <div class="form-group"><label id="label_content">事蹟 / 簡介</label><textarea id="m_content" rows="2"></textarea></div>
+      <div class="form-group"><label id="label_evidence">史籍考證</label><textarea id="m_evidence" rows="2"></textarea></div>
+      
       <div class="form-group">
         <label>虛空終端 (網址，一行一個)</label>
         <textarea id="m_link" rows="2" placeholder="https://...\nhttps://..."></textarea>
       </div>
+      
+      <div id="dynamicFootprints">
+        <label style="color: #c77dff; font-weight:bold; margin-bottom:5px; display:block;">✒️ 詩人足跡節點設定</label>
+        <div id="fpList"></div>
+        <button class="add-fp-btn" onclick="addFpField()">➕ 新增足跡節點</button>
+      </div>
+
       <div class="editor-actions">
         <button onclick="cancelEdit()">取 消</button>
         <button onclick="saveEdit()">銘 記</button>
@@ -210,9 +223,29 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    let rawData = typeof mythsData !== 'undefined' ? mythsData : [];
+    const fallbackData = [
+      { "id": "m1", "type": "神話、童話", "title": "盤古開天", "icon": "⛰️", "era": "神話時代", "year": -3000, "location": "中原 / 崑崙山脈", "coords": [35.5, 85.5], "regions": ["中國", "台灣"], "content": "天地渾沌如雞子，盤古生在其中。死後身軀化為三山五嶽、江河星辰。", "evidence": "故事背景為宇宙初開。最早文字記載於三國時代徐整的《三五歷紀》。", "link": "https://zh.wikipedia.org/zh-tw/%E7%9B%A4%E5%8F%A4" },
+      {
+        "id": "p1", "type": "詩人軌跡", "title": "李白 (詩仙)", "icon": "🍶", "era": "唐朝", "year": 701, "location": "四川江油 (出生地)", "coords": [31.78, 104.72], "regions": ["四川", "湖北", "陝西", "河南", "安徽"],
+        "content": "李白（701年－762年），字太白，號青蓮居士，唐代偉大的浪漫主義詩人。一生好入名山遊，足跡踏遍大江南北，留下無數千古名篇。",
+        "evidence": "《舊唐書·李白傳》。其足跡橫跨蜀中、長安、梁宋、江南與楚地。",
+        "link": "https://zh.wikipedia.org/zh-tw/%E6%9D%8E%E7%99%BD",
+        "footprints": [
+          { "place": "四川江油 (青蓮鄉)", "coords": [31.78, 104.72], "event": "出生與青蓮鄉成長，青年仗劍出蜀漫遊", "poem": "《蜀道難》\n噫吁嚱，危乎高哉！\n蜀道之難，難於上青天！", "translation": "多麼危險高聳！蜀道之難，難於上青天！", "background": "感嘆蜀道艱險。", "anecdote": "賀知章讀後稱其為謫仙人。" }
+        ]
+      }
+    ];
+
+    let rawData = [];
+    if (typeof dataMyths !== 'undefined') rawData = rawData.concat(dataMyths);
+    if (typeof dataFestivals !== 'undefined') rawData = rawData.concat(dataFestivals);
+    if (typeof dataIdioms !== 'undefined') rawData = rawData.concat(dataIdioms);
+    if (typeof dataPoets !== 'undefined') rawData = rawData.concat(dataPoets);
     
-    const categories = ["神話、童話", "節日起源", "成語故事"];
+    // 如果檔案全空，載入備用資料
+    if (rawData.length === 0) rawData = fallbackData;
+    
+    const categories = ["神話、童話", "節日起源", "成語故事", "詩人軌跡"];
     let currentCategoryIndex = 0;
     let filteredStories = [];
     
@@ -227,23 +260,18 @@
       const badge = document.getElementById('categoryBadge');
       badge.innerText = cat;
       
-      if (cat === "神話、童話") {
-        badge.style.borderColor = "#48cae4"; badge.style.color = "#48cae4";
-      } else if (cat === "節日起源") {
-        badge.style.borderColor = "#ff595e"; badge.style.color = "#ff595e";
-        badge.style.backgroundColor = "rgba(0,0,0,0.6)"; // 維持底色
-      } else {
-        badge.style.borderColor = "#b5e48c"; badge.style.color = "#b5e48c";
-      }
+      if (cat === "神話、童話") { badge.style.borderColor = "#48cae4"; badge.style.color = "#48cae4"; } 
+      else if (cat === "節日起源") { badge.style.borderColor = "#ff595e"; badge.style.color = "#ff595e"; } 
+      else if (cat === "成語故事") { badge.style.borderColor = "#b5e48c"; badge.style.color = "#b5e48c"; } 
+      else { badge.style.borderColor = "#c77dff"; badge.style.color = "#e0aaff"; }
 
       updateFilteredStories();
       currentPptIndex = -1;
       document.getElementById('pptProgress').innerText = `0 / ${filteredStories.length}`;
       
-      activeRegions = [];
-      hoverRegions = [];
+      activeRegions = []; hoverRegions = [];
+      poetTrajectoryGroup.clearLayers();
       refreshHighlights();
-      
       closeSidebar();
       renderMarkers();
     }
@@ -252,10 +280,7 @@
 
     const map = L.map('map', { zoomControl: false, minZoom: 2 }).setView([35.0, 105.0], 4);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18, attribution: '&copy; CARTO'
-    }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 18, attribution: '&copy; CARTO' }).addTo(map);
 
     function updateZoomClass() {
       const z = map.getZoom();
@@ -266,92 +291,61 @@
     map.on('zoomend', updateZoomClass);
     updateZoomClass(); 
 
-    const yellowRiverCoords = [
-      [34.9, 96.0], [35.5, 97.5], [35.9, 99.0], [36.0, 103.8], [36.6, 104.9], 
-      [37.5, 105.1], [38.5, 106.3], [39.3, 106.7], [40.3, 106.9], [40.8, 108.3], 
-      [40.6, 110.0], [40.0, 111.3], [39.0, 111.5], [37.8, 110.5], [35.6, 110.6], 
-      [34.8, 113.6], [35.0, 114.5], [35.8, 116.0], [36.7, 117.0], [37.5, 118.5], [37.8, 119.0]
-    ];
-    const yangtzeRiverCoords = [
-      [33.4, 91.1], [32.5, 95.0], [30.5, 97.5], [28.5, 99.5], [26.8, 100.2], 
-      [26.6, 101.5], [28.0, 103.5], [28.8, 104.6], [29.0, 105.5], [29.6, 106.5], 
-      [30.0, 107.5], [30.8, 109.5], [30.7, 111.3], [30.0, 112.5], [30.6, 114.3], 
-      [30.2, 115.0], [29.8, 116.0], [30.5, 117.0], [31.3, 118.4], [32.0, 118.8], 
-      [32.0, 120.0], [31.8, 120.5], [31.2, 121.4]
-    ];
-    
+    const yellowRiverCoords = [ [34.9, 96.0], [35.5, 97.5], [35.9, 99.0], [36.0, 103.8], [36.6, 104.9], [37.5, 105.1], [38.5, 106.3], [39.3, 106.7], [40.3, 106.9], [40.8, 108.3], [40.6, 110.0], [40.0, 111.3], [39.0, 111.5], [37.8, 110.5], [35.6, 110.6], [34.8, 113.6], [35.0, 114.5], [35.8, 116.0], [36.7, 117.0], [37.5, 118.5], [37.8, 119.0] ];
+    const yangtzeRiverCoords = [ [33.4, 91.1], [32.5, 95.0], [30.5, 97.5], [28.5, 99.5], [26.8, 100.2], [26.6, 101.5], [28.0, 103.5], [28.8, 104.6], [29.0, 105.5], [29.6, 106.5], [30.0, 107.5], [30.8, 109.5], [30.7, 111.3], [30.0, 112.5], [30.6, 114.3], [30.2, 115.0], [29.8, 116.0], [30.5, 117.0], [31.3, 118.4], [32.0, 118.8], [32.0, 120.0], [31.8, 120.5], [31.2, 121.4] ];
     L.polyline(yellowRiverCoords, {color: '#e2b04a', weight: 4, opacity: 0.8, className: 'glow-path'}).addTo(map);
     L.polyline(yangtzeRiverCoords, {color: '#48cae4', weight: 4, opacity: 0.8, className: 'glow-path'}).addTo(map);
 
-    const zhDict = {
-      "Afghanistan":"阿富汗","Albania":"阿爾巴尼亞","Algeria":"阿爾及利亞","Angola":"安哥拉","Argentina":"阿根廷","Australia":"澳洲","Austria":"奧地利","Bangladesh":"孟加拉","Belarus":"白俄羅斯","Belgium":"比利時","Bolivia":"玻利維亞","Brazil":"巴西","Cambodia":"柬埔寨","Canada":"加拿大","Chile":"智利","Colombia":"哥倫比亞","Cuba":"古巴","Denmark":"丹麥","Ecuador":"厄瓜多","Egypt":"埃及","Ethiopia":"衣索比亞","Finland":"芬蘭","France":"法國","Germany":"德國","Greece":"希臘","Greenland":"格陵蘭","Hungary":"匈牙利","Iceland":"冰島","India":"印度","Indonesia":"印尼","Iran":"伊朗","Iraq":"伊拉克","Ireland":"愛爾蘭","Israel":"以色列","Italy":"義大利","Japan":"日本","Jordan":"約旦","Kazakhstan":"哈薩克","Kenya":"肯亞","North Korea":"北韓","South Korea":"韓國","Laos":"寮國","Libya":"利比亞","Malaysia":"馬來西亞","Mexico":"墨西哥","Mongolia":"蒙古","Morocco":"摩洛哥","Myanmar":"緬甸","Nepal":"尼泊爾","Netherlands":"荷蘭","New Zealand":"紐西蘭","Nigeria":"奈及利亞","Norway":"挪威","Pakistan":"巴基斯坦","Peru":"秘魯","Philippines":"菲律賓","Poland":"波蘭","Portugal":"葡萄牙","Russia":"俄羅斯","Saudi Arabia":"沙烏地阿拉伯","South Africa":"南非","Spain":"西班牙","Sri Lanka":"斯里蘭卡","Sweden":"瑞典","Switzerland":"瑞士","Syria":"敘利亞","Taiwan":"台灣","Thailand":"泰國","Turkey":"土耳其","Ukraine":"烏克蘭","United Kingdom":"英國","United States":"美國","Venezuela":"委內瑞拉","Vietnam":"越南"
-    };
-
-    const zhProvDict = {
-      "北京市":"北京", "天津市":"天津", "河北省":"河北", "山西省":"山西", "内蒙古自治区":"內蒙古", 
-      "辽宁省":"遼寧", "吉林省":"吉林", "黑龙江省":"黑龍江", "上海市":"上海", "江苏省":"江蘇", 
-      "浙江省":"浙江", "安徽省":"安徽", "福建省":"福建", "江西省":"江西", "山东省":"山東", 
-      "河南省":"河南", "湖北省":"湖北", "湖南省":"湖南", "广东省":"廣東", "广西壮族自治区":"廣西", 
-      "海南省":"海南", "重庆市":"重慶", "四川省":"四川", "贵州省":"貴州", "云南省":"雲南", 
-      "西藏自治区":"西藏", "陕西省":"陝西", "甘肃省":"甘肅", "青海省":"青海", "宁夏回族自治区":"寧夏", 
-      "新疆维吾尔自治区":"新疆"
-    };
+    const zhDict = { "Afghanistan":"阿富汗","Albania":"阿爾巴尼亞","Algeria":"阿爾及利亞","Angola":"安哥拉","Argentina":"阿根廷","Australia":"澳洲","Austria":"奧地利","Bangladesh":"孟加拉","Belarus":"白俄羅斯","Belgium":"比利時","Bolivia":"玻利維亞","Brazil":"巴西","Cambodia":"柬埔寨","Canada":"加拿大","Chile":"智利","Colombia":"哥倫比亞","Cuba":"古巴","Denmark":"丹麥","Ecuador":"厄瓜多","Egypt":"埃及","Ethiopia":"衣索比亞","Finland":"芬蘭","France":"法國","Germany":"德國","Greece":"希臘","Greenland":"格陵蘭","Hungary":"匈牙利","Iceland":"冰島","India":"印度","Indonesia":"印尼","Iran":"伊朗","Iraq":"伊拉克","Ireland":"愛爾蘭","Israel":"以色列","Italy":"義大利","Japan":"日本","Jordan":"約旦","Kazakhstan":"哈薩克","Kenya":"肯亞","North Korea":"北韓","South Korea":"韓國","Laos":"寮國","Libya":"利比亞","Malaysia":"馬來西亞","Mexico":"墨西哥","Mongolia":"蒙古","Morocco":"摩洛哥","Myanmar":"緬甸","Nepal":"尼泊爾","Netherlands":"荷蘭","New Zealand":"紐西蘭","Nigeria":"奈及利亞","Norway":"挪威","Pakistan":"巴基斯坦","Peru":"秘魯","Philippines":"菲律賓","Poland":"波蘭","Portugal":"葡萄牙","Russia":"俄羅斯","Saudi Arabia":"沙烏地阿拉伯","South Africa":"南非","Spain":"西班牙","Sri Lanka":"斯里蘭卡","Sweden":"瑞典","Switzerland":"瑞士","Syria":"敘利亞","Taiwan":"台灣","Thailand":"泰國","Turkey":"土耳其","Ukraine":"烏克蘭","United Kingdom":"英國","United States":"美國","Venezuela":"委內瑞拉","Vietnam":"越南" };
+    const zhProvDict = { "北京市":"北京", "天津市":"天津", "河北省":"河北", "山西省":"山西", "内蒙古自治区":"內蒙古", "辽宁省":"遼寧", "吉林省":"吉林", "黑龙江省":"黑龍江", "上海市":"上海", "江苏省":"江蘇", "浙江省":"浙江", "安徽省":"安徽", "福建省":"福建", "江西省":"江西", "山东省":"山東", "河南省":"河南", "湖北省":"湖北", "湖南省":"湖南", "广东省":"廣東", "广西壮族自治区":"廣西", "海南省":"海南", "重庆市":"重慶", "四川省":"四川", "贵州省":"貴州", "云南省":"雲南", "西藏自治区":"西藏", "陕西省":"陝西", "甘肃省":"甘肅", "青海省":"青海", "宁夏回族自治区":"寧夏", "新疆维吾尔自治区":"新疆" };
     
     const chinaProvinces = Object.values(zhProvDict).concat(["香港", "澳門"]);
     const skipAutoLabels = ["Russia", "United States", "Canada", "France", "United Kingdom", "Australia", "New Zealand"];
-
     const regionLayers = {};
 
-    fetch('https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json')
-      .then(res => res.json())
-      .then(data => {
-        data.features = data.features.filter(f => f.id !== 'CHN' && f.properties.name !== 'China' && f.properties.name !== 'Hong Kong' && f.properties.name !== 'Macau');
-        L.geoJSON(data, { 
-          style: { color: '#000000', weight: 0.4, fillOpacity: 0 },
-          onEachFeature: function(feature, layer) {
-            if (feature.properties && feature.properties.name) {
-              const engName = feature.properties.name;
-              const zhName = zhDict[engName] || engName;
-              regionLayers[zhName] = layer; 
-              
-              if (!skipAutoLabels.includes(engName)) {
-                const bounds = layer.getBounds();
-                const area = (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
-                let sizeClass = 'size-small';
-                if (area > 50 || zhName === '台灣' || zhName === '日本' || zhName === '韓國') sizeClass = 'size-huge';
-                else if (area > 10) sizeClass = 'size-large';
-                else if (area > 2) sizeClass = 'size-medium';
-                layer.bindTooltip(zhName, { permanent: true, direction: 'center', className: `geo-label ${sizeClass}` });
-              }
+    fetch('https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json').then(res => res.json()).then(data => {
+      data.features = data.features.filter(f => f.id !== 'CHN' && f.properties.name !== 'China' && f.properties.name !== 'Hong Kong' && f.properties.name !== 'Macau');
+      L.geoJSON(data, { 
+        style: { color: '#000000', weight: 0.4, fillOpacity: 0 },
+        onEachFeature: function(feature, layer) {
+          if (feature.properties && feature.properties.name) {
+            const engName = feature.properties.name;
+            const zhName = zhDict[engName] || engName;
+            regionLayers[zhName] = layer; 
+            if (!skipAutoLabels.includes(engName)) {
+              const bounds = layer.getBounds();
+              const area = (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
+              let sizeClass = 'size-small';
+              if (area > 50 || zhName === '台灣' || zhName === '日本' || zhName === '韓國') sizeClass = 'size-huge';
+              else if (area > 10) sizeClass = 'size-large';
+              else if (area > 2) sizeClass = 'size-medium';
+              layer.bindTooltip(zhName, { permanent: true, direction: 'center', className: `geo-label ${sizeClass}` });
             }
           }
-        }).addTo(map);
-      });
+        }
+      }).addTo(map);
+    });
 
-    fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
-      .then(res => res.json())
-      .then(data => {
-        data.features = data.features.filter(f => f.properties.name !== '台湾省');
-        L.geoJSON(data, { 
-          style: { color: '#000000', weight: 0.4, fillOpacity: 0, dashArray: '2, 3' },
-          onEachFeature: function(feature, layer) {
-            if (feature.properties && feature.properties.name) {
-              const provName = zhProvDict[feature.properties.name] || feature.properties.name;
-              regionLayers[provName] = layer; 
-            }
+    fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json').then(res => res.json()).then(data => {
+      // 在此處徹底過濾掉沒有名稱的海域線以及台湾省
+      data.features = data.features.filter(f => f.properties && f.properties.name && f.properties.name !== '台湾省');
+      L.geoJSON(data, { 
+        style: { color: '#000000', weight: 0.4, fillOpacity: 0, dashArray: '2, 3' },
+        onEachFeature: function(feature, layer) {
+          if (feature.properties && feature.properties.name) {
+            const provName = zhProvDict[feature.properties.name] || feature.properties.name;
+            regionLayers[provName] = layer; 
           }
-        }).addTo(map);
-      }).catch(() => console.log("無外網環境，略過中國 GeoJSON 邊界繪製"));
+        }
+      }).addTo(map);
+    }).catch(() => console.log("無外網環境，略過中國 GeoJSON 邊界繪製"));
 
     const manualLabels = [
       { name: "中國", coords: [35.0, 104.0], isCountry: true }, { name: "俄羅斯", coords: [61.5, 95.3], isCountry: true },
       { name: "美國", coords: [39.8, -98.5], isCountry: true }, { name: "加拿大", coords: [56.1, -106.3], isCountry: true },
       { name: "法國", coords: [46.2, 2.2], isCountry: true }, { name: "英國", coords: [52.3, -1.5], isCountry: true },
       { name: "澳洲", coords: [-25.2, 133.7], isCountry: true }, { name: "紐西蘭", coords: [-40.9, 174.8], isCountry: true },
-      
-      { name: "黃河", coords: [37.5, 110.0], isRiver: true, color: "#e2b04a" }, 
-      { name: "長江", coords: [30.5, 110.0], isRiver: true, color: "#48cae4" },
-
+      { name: "黃河", coords: [37.5, 110.0], isRiver: true, color: "#e2b04a" }, { name: "長江", coords: [30.5, 110.0], isRiver: true, color: "#48cae4" },
       { name: "北京", coords: [40.2, 116.4] }, { name: "天津", coords: [39.1, 117.2] }, { name: "河北", coords: [38.0, 115.5] },
       { name: "山西", coords: [37.8, 112.5] }, { name: "內蒙古", coords: [44.0, 113.0] }, { name: "遼寧", coords: [41.8, 123.4] },
       { name: "吉林", coords: [43.8, 126.5] }, { name: "黑龍江", coords: [47.8, 127.9] }, { name: "上海", coords: [31.2, 121.4] },
@@ -370,7 +364,6 @@
       let extraClass = label.isCountry ? 'country-huge' : 'manual-province-label';
       let fontColor = label.isRiver ? label.color : '#1e293b';
       if(label.isRiver) extraClass = 'river-label';
-
       const textIcon = L.divIcon({
         className: `custom-text-label ${extraClass}`,
         html: `<div style="color:${fontColor}; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0px 2px 3px rgba(0,0,0,0.4);">${label.name}</div>`,
@@ -380,42 +373,28 @@
     });
 
     const markersGroup = L.layerGroup().addTo(map);
+    const poetTrajectoryGroup = L.layerGroup().addTo(map); 
     
     let activeRegions = []; 
     let hoverRegions = [];
 
     function refreshHighlights() {
-      for(let r in regionLayers) {
-        regionLayers[r].setStyle({ fillOpacity: 0 });
-      }
-
+      for(let r in regionLayers) { regionLayers[r].setStyle({ fillOpacity: 0 }); }
       const getActualRegions = (regionsArray) => {
         let res = [];
-        regionsArray.forEach(r => {
-          if(r === "中國") res.push(...chinaProvinces);
-          else res.push(r);
-        });
+        regionsArray.forEach(r => { if(r === "中國") res.push(...chinaProvinces); else res.push(r); });
         return res;
       };
-
       const actualHover = getActualRegions(hoverRegions);
       const actualActive = getActualRegions(activeRegions);
 
-      actualHover.forEach(r => {
-        if(regionLayers[r] && !actualActive.includes(r)) {
-          regionLayers[r].setStyle({ fillOpacity: 0.2, fillColor: '#c69c6d' });
-        }
-      });
-
-      actualActive.forEach(r => {
-        if(regionLayers[r]) {
-          regionLayers[r].setStyle({ fillOpacity: 0.4, fillColor: '#e2b04a' });
-        }
-      });
+      actualHover.forEach(r => { if(regionLayers[r] && !actualActive.includes(r)) regionLayers[r].setStyle({ fillOpacity: 0.2, fillColor: '#c69c6d' }); });
+      actualActive.forEach(r => { if(regionLayers[r]) regionLayers[r].setStyle({ fillOpacity: 0.4, fillColor: '#e2b04a' }); });
     }
 
     let isEditMode = false;
     let tempMarker = null;
+    let editingId = null; 
     
     const eras = [
       { name: "現代", start: 1912, end: 2026 }, { name: "明清", start: 1368, end: 1911 },
@@ -441,59 +420,67 @@
 
       document.getElementById('timeSlider').value = story.year;
       updateTimelineText();
-
       if (!isOverviewMode) renderMarkers(); 
 
       activeRegions = story.regions || [];
       refreshHighlights();
+
+      poetTrajectoryGroup.clearLayers();
+      if (story.footprints && story.footprints.length > 0) {
+        const lineCoords = story.footprints.map(f => f.coords);
+        L.polyline(lineCoords, { color: '#c77dff', weight: 3, dashArray: '6, 8', opacity: 0.9, className: 'glow-path' }).addTo(poetTrajectoryGroup);
+        story.footprints.forEach((fp, idx) => {
+          const fpIcon = L.divIcon({ html: `<div style="font-size: 22px; text-shadow: 0 2px 4px rgba(0,0,0,0.6); cursor:pointer;">✒️</div>`, className: 'custom-map-icon', iconSize: [28, 28], iconAnchor: [14, 14] });
+          const fpMarker = L.marker(fp.coords, { icon: fpIcon }).addTo(poetTrajectoryGroup);
+          fpMarker.bindTooltip(`<b>${fp.place}</b>`, { permanent: false, direction: 'top' });
+          
+          fpMarker.on('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            const detailEl = document.getElementById(`fp-detail-${idx}`);
+            if(detailEl) {
+              if(!sidebar.classList.contains('open')) sidebar.classList.add('open');
+              detailEl.open = true;
+              setTimeout(() => {
+                detailEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                detailEl.style.transition = 'background-color 0.5s';
+                detailEl.style.backgroundColor = 'rgba(199, 125, 255, 0.4)';
+                setTimeout(() => detailEl.style.backgroundColor = 'rgba(0,0,0,0.4)', 1500);
+              }, 100); 
+            }
+          });
+        });
+      }
 
       showStoryDetails(story);
       map.flyTo(story.coords, 5, { duration: 1.2 });
       document.getElementById('pptProgress').innerText = `卷 ${index + 1} / ${filteredStories.length}`;
     }
 
-    function nextStory() {
-      if(filteredStories.length === 0) return;
-      let nextIdx = currentPptIndex + 1;
-      if(nextIdx >= filteredStories.length) nextIdx = 0; 
-      goToStory(nextIdx);
-    }
-    function prevStory() {
-      if(filteredStories.length === 0) return;
-      let prevIdx = currentPptIndex - 1;
-      if(prevIdx < 0) prevIdx = filteredStories.length - 1;
-      goToStory(prevIdx);
-    }
-
+    function nextStory() { if(filteredStories.length === 0) return; let nextIdx = currentPptIndex + 1; if(nextIdx >= filteredStories.length) nextIdx = 0; goToStory(nextIdx); }
+    function prevStory() { if(filteredStories.length === 0) return; let prevIdx = currentPptIndex - 1; if(prevIdx < 0) prevIdx = filteredStories.length - 1; goToStory(prevIdx); }
     function getEraByYear(year) { return eras.find(e => year >= e.start && year <= e.end) || eras[eras.length - 1]; }
 
     function updateTimelineText() {
       const currentYear = parseInt(document.getElementById('timeSlider').value);
       const currentEra = getEraByYear(currentYear);
       const yearText = currentYear < 0 ? `西元前 ${Math.abs(currentYear)} 年` : `西元 ${currentYear} 年`;
-
       if (isOverviewMode) {
-        document.getElementById('currentEraDisplay').innerText = "當前：全覽";
-        document.getElementById('currentYearDisplay').innerText = "所有卷宗";
+        document.getElementById('currentEraDisplay').innerText = "當前：全覽"; document.getElementById('currentYearDisplay').innerText = "所有卷宗";
       } else {
-        document.getElementById('currentEraDisplay').innerText = `紀元：${currentEra.name}`;
-        document.getElementById('currentYearDisplay').innerText = yearText;
+        document.getElementById('currentEraDisplay').innerText = `紀元：${currentEra.name}`; document.getElementById('currentYearDisplay').innerText = yearText;
       }
     }
 
     function toggleOverview() {
       isOverviewMode = !isOverviewMode;
-      const btn = document.getElementById('btnOverview');
-      if (isOverviewMode) btn.classList.add('active');
-      else btn.classList.remove('active');
-      updateTimelineText();
-      renderMarkers();
+      if (isOverviewMode) document.getElementById('btnOverview').classList.add('active');
+      else document.getElementById('btnOverview').classList.remove('active');
+      updateTimelineText(); renderMarkers();
     }
 
     document.getElementById('timeSlider').addEventListener('input', () => {
       if (isOverviewMode) toggleOverview(); 
-      updateTimelineText();
-      renderMarkers();
+      updateTimelineText(); renderMarkers();
     });
 
     function renderMarkers() {
@@ -503,25 +490,12 @@
 
       filteredStories.forEach(story => {
         if (!isOverviewMode && (story.year < currentEra.start || story.year > currentEra.end)) return;
-
         const customIcon = L.divIcon({ html: `<div>${story.icon}</div>`, className: 'custom-map-icon', iconSize: [36, 36], iconAnchor: [18, 18] });
         const marker = L.marker(story.coords, { icon: customIcon }).addTo(markersGroup);
         
-        marker.on('mouseover', () => {
-          hoverRegions = story.regions || [];
-          refreshHighlights();
-        });
-        marker.on('mouseout', () => {
-          hoverRegions = [];
-          refreshHighlights();
-        });
-        
-        marker.on('click', (e) => {
-          L.DomEvent.stopPropagation(e);
-          if(isEditMode) return; 
-          const idx = filteredStories.findIndex(s => s.id === story.id);
-          goToStory(idx);
-        });
+        marker.on('mouseover', () => { hoverRegions = story.regions || []; refreshHighlights(); });
+        marker.on('mouseout', () => { hoverRegions = []; refreshHighlights(); });
+        marker.on('click', (e) => { L.DomEvent.stopPropagation(e); if(isEditMode) return; goToStory(filteredStories.findIndex(s => s.id === story.id)); });
       });
     }
 
@@ -532,39 +506,97 @@
       let linkBtns = '';
       if (story.link) {
         const links = story.link.split('\n').map(l => l.trim()).filter(l => l);
-        links.forEach((l, i) => {
-          linkBtns += `<a href="${l}" target="_blank" class="source-btn">🔗 查閱終端 ${links.length > 1 ? (i+1) : ''}</a>`;
-        });
+        links.forEach((l, i) => { linkBtns += `<a href="${l}" target="_blank" class="source-btn">🔗 查閱終端 ${links.length > 1 ? (i+1) : ''}</a>`; });
       }
       
       const sType = story.type || "神話、童話";
       let typeClass = "";
       if (sType === "節日起源") typeClass = "holiday-tag";
       if (sType === "成語故事") typeClass = "idiom-tag";
+      if (sType === "詩人軌跡") typeClass = "poet-tag";
+
+      let footprintHtml = '';
+      if (story.footprints && story.footprints.length > 0) {
+        footprintHtml = '<div style="margin-top: 15px; border-top: 1px solid var(--geo-border); padding-top: 15px;"><h3 style="color: #e0aaff; font-size: 1.1rem; margin-bottom: 12px;">✒️ 平生遊歷與創作：</h3>';
+        story.footprints.forEach((fp, idx) => {
+          const poemTitle = fp.poem ? fp.poem.split('\n')[0] : '';
+          footprintHtml += `
+            <details class="fp-item" id="fp-detail-${idx}">
+              <summary>${idx + 1}. ${fp.place} - <span style="font-size:0.8rem; color:#a6917c;">${poemTitle}</span></summary>
+              <div class="fp-content-box">
+                <p><strong>📖 背景：</strong>${fp.event || fp.background || "無"}</p>
+                ${fp.poem ? `<p class="fp-poem">${fp.poem.replace(/\n/g, '<br>')}</p>` : ''}
+                ${fp.translation ? `<p><strong>📝 白話：</strong>${fp.translation}</p>` : ''}
+                ${fp.anecdote ? `<p><strong>✨ 軼事：</strong>${fp.anecdote}</p>` : ''}
+                <button class="source-btn" style="margin-top:5px; margin-bottom:0;" onclick="map.flyTo([${fp.coords[0]}, ${fp.coords[1]}], 7, { duration: 1.2 })">📍 飛往此地</button>
+              </div>
+            </details>
+          `;
+        });
+        footprintHtml += '</div>';
+      }
 
       document.getElementById('sidebarContent').innerHTML = `
         <div class="story-card">
-          <span class="story-tag ${typeClass}">${sType} | ${story.era} | ${yearText}</span>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <span class="story-tag ${typeClass}">${sType} | ${story.era} | ${yearText}</span>
+            <button class="btn" style="padding: 4px 8px; font-size: 0.75rem;" onclick="editExistingStory('${story.id}')">✏️ 編輯修改</button>
+          </div>
           <h2 class="story-title">${story.icon} ${story.title}</h2>
           <div class="story-location">📍 落點：${story.location}</div>
           <p class="story-content">${story.content}</p>
-          <div class="story-evidence"><strong>📜 史籍考證：</strong><br>${story.evidence || "佚失"}</div>
+          <div class="story-evidence"><strong id="side_evi_label">📜 史籍考證：</strong><br>${story.evidence || "佚失"}</div>
           ${linkBtns}
+          ${footprintHtml}
         </div>
       `;
+      if (sType === '詩人軌跡') { document.getElementById('side_evi_label').innerText = "📜 生平考證來源："; }
+      
       sidebar.classList.add('open');
     }
 
     function closeSidebar() { sidebar.classList.remove('open'); }
     map.on('click', function() { if(!isEditMode) closeSidebar(); });
 
+    function checkType() {
+      const type = document.getElementById('m_type').value;
+      const isPoet = (type === '詩人軌跡');
+      document.getElementById('dynamicFootprints').style.display = isPoet ? 'block' : 'none';
+      document.getElementById('label_content').innerText = isPoet ? "詩人平生簡介" : "事蹟 / 簡介";
+      document.getElementById('label_evidence').innerText = isPoet ? "生平考證來源" : "史籍考證";
+    }
+
+    function addFpField(fp = {}) {
+      const list = document.getElementById('fpList');
+      const idx = list.children.length;
+      const div = document.createElement('div');
+      div.className = 'fp-edit-box';
+      div.innerHTML = `
+        <button class="fp-remove-btn" onclick="this.parentElement.remove()">✖</button>
+        <input type="text" class="fp-place" placeholder="地點 (如: 黃鶴樓)" value="${fp.place || ''}" style="margin-bottom:5px; width:100%;">
+        <div style="display:flex; gap:5px; margin-bottom:5px;">
+          <input type="number" class="fp-lat" placeholder="緯度" value="${fp.coords ? fp.coords[0] : ''}" style="width:50%;">
+          <input type="number" class="fp-lng" placeholder="經度" value="${fp.coords ? fp.coords[1] : ''}" style="width:50%;">
+        </div>
+        <textarea class="fp-event" placeholder="創作背景/事件" rows="2" style="margin-bottom:5px; width:100%;">${fp.event || fp.background || ''}</textarea>
+        <textarea class="fp-poem" placeholder="詩作 (可包含換行)" rows="3" style="margin-bottom:5px; width:100%;">${fp.poem || ''}</textarea>
+        <textarea class="fp-trans" placeholder="白話文翻譯" rows="2" style="margin-bottom:5px; width:100%;">${fp.translation || ''}</textarea>
+        <textarea class="fp-anecdote" placeholder="奇聞軼事" rows="2" style="width:100%;">${fp.anecdote || ''}</textarea>
+      `;
+      list.appendChild(div);
+    }
+
     function toggleEditMode() {
       isEditMode = !isEditMode;
       const btn = document.getElementById('btnAdd');
       if(isEditMode) {
-        btn.innerText = "❌ 中止締約";
-        btn.style.borderColor = "#ff4d4f";
-        btn.style.color = "#ff4d4f";
+        editingId = null; 
+        document.getElementById('editorTitle').innerText = "締結新約";
+        document.querySelectorAll('#editorPanel input[type="text"], #editorPanel input[type="number"], #editorPanel textarea').forEach(el => el.value = '');
+        document.getElementById('m_icon').value = '🌟';
+        document.getElementById('fpList').innerHTML = ''; 
+        checkType();
+        btn.innerText = "❌ 中止締約"; btn.style.borderColor = "#ff4d4f"; btn.style.color = "#ff4d4f";
         document.getElementById('map').classList.add('map-edit-mode');
         closeSidebar();
       } else {
@@ -572,23 +604,51 @@
       }
     }
 
+    function editExistingStory(id) {
+      const story = rawData.find(s => s.id === id);
+      if(!story) return;
+      
+      editingId = id;
+      document.getElementById('editorTitle').innerText = "✏️ 編輯卷宗";
+      document.getElementById('m_icon').value = story.icon;
+      document.getElementById('m_title').value = story.title;
+      document.getElementById('m_type').value = story.type || "神話、童話";
+      document.getElementById('m_era').value = story.era;
+      document.getElementById('m_year').value = story.year;
+      document.getElementById('m_location').value = story.location;
+      document.getElementById('m_regions').value = (story.regions || []).join(', ');
+      document.getElementById('m_content').value = story.content;
+      document.getElementById('m_evidence').value = story.evidence || '';
+      document.getElementById('m_link').value = story.link || '';
+      
+      document.getElementById('fpList').innerHTML = '';
+      if(story.footprints) story.footprints.forEach(fp => addFpField(fp));
+      checkType();
+
+      isEditMode = true;
+      const btn = document.getElementById('btnAdd');
+      btn.innerText = "❌ 中止締約"; btn.style.borderColor = "#ff4d4f"; btn.style.color = "#ff4d4f";
+      
+      if(tempMarker) map.removeLayer(tempMarker);
+      tempMarker = L.marker(story.coords, { draggable: true }).addTo(map);
+      
+      document.getElementById('editorPanel').style.display = 'block';
+      document.getElementById('map').classList.remove('map-edit-mode');
+      closeSidebar();
+    }
+
     map.on('click', function(e) {
       if(!isEditMode) return;
       if(tempMarker) map.removeLayer(tempMarker);
-
-      const latlng = e.latlng;
-      tempMarker = L.marker(latlng, { draggable: true }).addTo(map);
-
+      tempMarker = L.marker(e.latlng, { draggable: true }).addTo(map);
       document.getElementById('editorPanel').style.display = 'block';
       document.getElementById('map').classList.remove('map-edit-mode');
     });
 
     function cancelEdit() {
-      isEditMode = false;
+      isEditMode = false; editingId = null;
       const btn = document.getElementById('btnAdd');
-      btn.innerText = "➕ 締結新約";
-      btn.style.borderColor = "var(--geo-gold)";
-      btn.style.color = "var(--geo-gold)";
+      btn.innerText = "➕ 締結新約"; btn.style.borderColor = "var(--geo-gold)"; btn.style.color = "var(--geo-gold)";
       document.getElementById('map').classList.remove('map-edit-mode');
       document.getElementById('editorPanel').style.display = 'none';
       if(tempMarker) map.removeLayer(tempMarker);
@@ -600,8 +660,27 @@
       const regionInput = document.getElementById('m_regions').value;
       const regionsArray = regionInput ? regionInput.split(',').map(s => s.trim()) : ["中國"];
       
+      let footprintsArray = [];
+      if(document.getElementById('m_type').value === '詩人軌跡') {
+        const fpBoxes = document.querySelectorAll('.fp-edit-box');
+        fpBoxes.forEach(box => {
+          const lat = parseFloat(box.querySelector('.fp-lat').value);
+          const lng = parseFloat(box.querySelector('.fp-lng').value);
+          if(!isNaN(lat) && !isNaN(lng)) {
+            footprintsArray.push({
+              place: box.querySelector('.fp-place').value,
+              coords: [lat, lng],
+              background: box.querySelector('.fp-event').value,
+              poem: box.querySelector('.fp-poem').value,
+              translation: box.querySelector('.fp-trans').value,
+              anecdote: box.querySelector('.fp-anecdote').value
+            });
+          }
+        });
+      }
+      
       const newMyth = {
-        id: "m" + Date.now(),
+        id: editingId || ("m" + Date.now()),
         type: document.getElementById('m_type').value || "神話、童話",
         title: document.getElementById('m_title').value || "未知卷宗",
         icon: document.getElementById('m_icon').value || "📍",
@@ -612,30 +691,50 @@
         regions: regionsArray,
         content: document.getElementById('m_content').value,
         evidence: document.getElementById('m_evidence').value,
-        link: document.getElementById('m_link').value
+        link: document.getElementById('m_link').value,
+        footprints: footprintsArray.length > 0 ? footprintsArray : undefined
       };
 
-      rawData.push(newMyth);
+      if(editingId) {
+        const idx = rawData.findIndex(s => s.id === editingId);
+        if(idx !== -1) rawData[idx] = newMyth;
+      } else {
+        rawData.push(newMyth);
+      }
+
       updateFilteredStories(); 
       cancelEdit();
       renderMarkers();
-      
-      document.querySelectorAll('#editorPanel input[type="text"], #editorPanel input[type="number"], #editorPanel textarea').forEach(el => el.value = '');
-      document.getElementById('m_icon').value = '🌟';
     }
 
     function exportData() {
-      const fileContent = `const mythsData = ${JSON.stringify(rawData, null, 2)};`;
-      const blob = new Blob([fileContent], { type: "text/javascript;charset=utf-8" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "data.js";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+      // 1. 將目前的資料依照類型分類
+      const myths = rawData.filter(d => d.type === "神話、童話");
+      const festivals = rawData.filter(d => d.type === "節日起源");
+      const idioms = rawData.filter(d => d.type === "成語故事");
+      const poets = rawData.filter(d => d.type === "詩人軌跡");
 
-    updateTimelineText();
+      // 2. 建立一個專門用來下載的小工具函數
+      const downloadFile = (filename, varName, dataArray) => {
+        if(dataArray.length === 0) return; // 如果該分類沒資料就不下載
+        const fileContent = `const ${varName} = ${JSON.stringify(dataArray, null, 2)};`;
+        const blob = new Blob([fileContent], { type: "text/javascript;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      // 3. 觸發四次下載，分別產生四個檔案
+      downloadFile("data_myths.js", "dataMyths", myths);
+      downloadFile("data_festivals.js", "dataFestivals", festivals);
+      downloadFile("data_idioms.js", "dataIdioms", idioms);
+      downloadFile("data_poets.js", "dataPoets", poets);
+      
+      alert("✅ 拓印完成！已將最新卷宗自動拆分為四個檔案下載，請確認瀏覽器的下載區。");
+    }
     renderMarkers();
     document.getElementById('pptProgress').innerText = `0 / ${filteredStories.length}`;
   </script>
