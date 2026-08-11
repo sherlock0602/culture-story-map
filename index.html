@@ -128,7 +128,7 @@
   <script src="data_festivals.js"></script>
   <script src="data_idioms.js"></script>
   <script src="data_poets.js"></script>
-
+  <script src="china_regions.js"></script>
   <div class="main-container">
     <div class="top-left-panel">
       <div id="categoryBadge" class="category-badge" onclick="toggleCategory()" title="點擊切換維度">神話、童話</div>
@@ -326,21 +326,20 @@
       }).addTo(map);
     });
 
-    // 加入了 { referrerPolicy: "no-referrer" } 當作隱身斗篷，並保留了去除海域虛線與台灣省的設定
-    fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json', { referrerPolicy: "no-referrer" })
-      .then(res => res.json())
-      .then(data => {
-        data.features = data.features.filter(f => f.properties && f.properties.name && f.properties.name !== '台湾省');
-        L.geoJSON(data, { 
-          style: { color: '#000000', weight: 0.4, fillOpacity: 0, dashArray: '2, 3' },
-          onEachFeature: function(feature, layer) {
-            if (feature.properties && feature.properties.name) {
-              const provName = zhProvDict[feature.properties.name] || feature.properties.name;
-              regionLayers[provName] = layer; 
-            }
-          }
-        }).addTo(map);
-      }).catch((err) => console.log("圖資請求失敗，略過邊界繪製:", err));
+    // 使用我們剛剛存好的本地變數，完全不需要網路請求！
+    // 依然保留過濾掉無名海域線與台灣省的設定
+    let chinaData = JSON.parse(JSON.stringify(chinaRegionsData)); 
+    chinaData.features = chinaData.features.filter(f => f.properties && f.properties.name && f.properties.name !== '台湾省');
+    
+    L.geoJSON(chinaData, { 
+      style: { color: '#000000', weight: 0.4, fillOpacity: 0, dashArray: '2, 3' },
+      onEachFeature: function(feature, layer) {
+        if (feature.properties && feature.properties.name) {
+          const provName = zhProvDict[feature.properties.name] || feature.properties.name;
+          regionLayers[provName] = layer; 
+        }
+      }
+    }).addTo(map);
 
     const manualLabels = [
       { name: "中國", coords: [35.0, 104.0], isCountry: true }, { name: "俄羅斯", coords: [61.5, 95.3], isCountry: true },
