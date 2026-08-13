@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>神話時空地圖 - 大字體護眼版</title>
+  <title>神話時空地圖 </title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -121,6 +121,71 @@
     .fp-remove-btn { position: absolute; top: 5px; right: 5px; background: #ff4d4f; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; line-height: 20px; text-align: center;}
     .add-fp-btn { width: 100%; padding: 8px; background: transparent; border: 1px dashed #c77dff; color: #c77dff; border-radius: 4px; cursor: pointer; transition: 0.3s; font-weight: bold; margin-top: 5px;}
     .add-fp-btn:hover { background: rgba(199, 125, 255, 0.2); }
+/* --- 搜尋列樣式 --- */
+.search-container {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000; /* 確保在最上層 */
+  width: 350px;
+}
+.search-input {
+  width: 100%;
+  padding: 10px 18px;
+  border-radius: 25px;
+  border: 1px solid var(--geo-gold);
+  background: var(--geo-panel);
+  color: var(--geo-text-main);
+  font-size: 1.05rem;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  outline: none;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+.search-input:focus {
+  border-color: var(--geo-gold-bright);
+  box-shadow: 0 4px 25px rgba(226, 176, 74, 0.4);
+}
+.search-input::placeholder {
+  color: var(--geo-text-sub);
+}
+.search-results {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: 100%;
+  background: var(--geo-panel);
+  border: 1px solid var(--geo-border);
+  border-radius: 12px;
+  margin-top: 5px;
+  max-height: 350px;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+}
+.search-results::-webkit-scrollbar { width: 6px; }
+.search-results::-webkit-scrollbar-thumb { background: var(--geo-gold); border-radius: 3px;}
+.search-result-item {
+  padding: 12px 18px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: var(--geo-text-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: rgba(198, 156, 109, 0.3); }
+.search-result-info { display: flex; flex-direction: column; }
+.search-result-title { font-weight: bold; font-size: 1rem; }
+.search-result-type { font-size: 0.75rem; color: var(--geo-gold); margin-top: 2px; }
+
+
+
   </style>
 </head>
 <body>
@@ -130,6 +195,11 @@
   <script src="data_poets.js"></script>
   <script src="china_regions.js"></script>
   <div class="main-container">
+<!-- 全域搜尋列 -->
+<div class="search-container">
+  <input type="text" id="searchInput" class="search-input" placeholder="🔍 搜尋卷宗、地點或關鍵字..." oninput="handleSearch()">
+  <div id="searchResults" class="search-results"></div>
+</div>
     <div class="top-left-panel">
       <div id="categoryBadge" class="category-badge" onclick="toggleCategory()" title="點擊切換維度">神話、童話</div>
       <div class="icon-controls">
@@ -296,7 +366,7 @@
     L.polyline(yellowRiverCoords, {color: '#e2b04a', weight: 4, opacity: 0.8, className: 'glow-path'}).addTo(map);
     L.polyline(yangtzeRiverCoords, {color: '#48cae4', weight: 4, opacity: 0.8, className: 'glow-path'}).addTo(map);
 
-    const zhDict = { "Afghanistan":"阿富汗","Albania":"阿爾巴尼亞","Algeria":"阿爾及利亞","Angola":"安哥拉","Argentina":"阿根廷","Australia":"澳洲","Austria":"奧地利","Bangladesh":"孟加拉","Belarus":"白俄羅斯","Belgium":"比利時","Bolivia":"玻利維亞","Brazil":"巴西","Cambodia":"柬埔寨","Canada":"加拿大","Chile":"智利","Colombia":"哥倫比亞","Cuba":"古巴","Denmark":"丹麥","Ecuador":"厄瓜多","Egypt":"埃及","Ethiopia":"衣索比亞","Finland":"芬蘭","France":"法國","Germany":"德國","Greece":"希臘","Greenland":"格陵蘭","Hungary":"匈牙利","Iceland":"冰島","India":"印度","Indonesia":"印尼","Iran":"伊朗","Iraq":"伊拉克","Ireland":"愛爾蘭","Israel":"以色列","Italy":"義大利","Japan":"日本","Jordan":"約旦","Kazakhstan":"哈薩克","Kenya":"肯亞","North Korea":"北韓","South Korea":"韓國","Laos":"寮國","Libya":"利比亞","Malaysia":"馬來西亞","Mexico":"墨西哥","Mongolia":"蒙古","Morocco":"摩洛哥","Myanmar":"緬甸","Nepal":"尼泊爾","Netherlands":"荷蘭","New Zealand":"紐西蘭","Nigeria":"奈及利亞","Norway":"挪威","Pakistan":"巴基斯坦","Peru":"秘魯","Philippines":"菲律賓","Poland":"波蘭","Portugal":"葡萄牙","Russia":"俄羅斯","Saudi Arabia":"沙烏地阿拉伯","South Africa":"南非","Spain":"西班牙","Sri Lanka":"斯里蘭卡","Sweden":"瑞典","Switzerland":"瑞士","Syria":"敘利亞","Taiwan":"台灣","Thailand":"泰國","Turkey":"土耳其","Ukraine":"烏克蘭","United Kingdom":"英國","United States":"美國","Venezuela":"委內瑞拉","Vietnam":"越南" };
+    const zhDict = { "Afghanistan":"阿富汗","Albania":"阿爾巴尼亞","Algeria":"阿爾及利亞","Angola":"安哥拉","Argentina":"阿根廷","Australia":"澳洲","Austria":"奧地利","Bangladesh":"孟加拉","Belarus":"白俄羅斯","Belgium":"比利時","Bolivia":"玻利維亞","Brazil":"巴西","Cambodia":"柬埔寨","Canada":"加拿大","Chile":"智利","Colombia":"哥倫比亞","Cuba":"古巴","Denmark":"丹麥","Ecuador":"厄瓜多","Egypt":"埃及","Ethiopia":"衣索比亞","Finland":"芬蘭","France":"法國","Germany":"德國","Greece":"希臘","Greenland":"格陵蘭","Hungary":"匈牙利","Iceland":"冰島","India":"印度","Indonesia":"印尼","Iran":"伊朗","Iraq":"伊拉克","Ireland":"愛爾蘭","Israel":"以色列","Italy":"義大利","Japan":"日本","Jordan":"約旦","Kazakhstan":"哈薩克","Kenya":"肯亞","North Korea":"北韓","South Korea":"韓國","Laos":"寮國","Libya":"利比亞","Malaysia":"馬來西亞","Mexico":"墨西哥","Mongolia":"蒙古","Morocco":"摩洛哥","Myanmar":"緬甸","Nepal":"尼泊爾","Netherlands":"荷蘭","New Zealand":"紐西蘭","Nigeria":"奈及利亞","Norway":"挪威","Pakistan":"巴基斯坦","Peru":"秘魯","Philippines":"菲律賓","Poland":"波蘭","Portugal":"葡萄牙","Russia":"俄羅斯","Saudi Arabia":"沙烏地阿拉伯","South Africa":"南非","Spain":"西班牙","Sri Lanka":"斯里蘭卡","Sweden":"瑞典","Switzerland":"瑞士","Syria":"敘利亞","Taiwan":"台灣","Thailand":"泰國","Turkey":"土耳其","Ukraine":"烏克蘭","United Kingdom":"英國","United States of America":"美國","Venezuela":"委內瑞拉","Vietnam":"越南" };
     const zhProvDict = { "北京市":"北京", "天津市":"天津", "河北省":"河北", "山西省":"山西", "内蒙古自治区":"內蒙古", "辽宁省":"遼寧", "吉林省":"吉林", "黑龙江省":"黑龍江", "上海市":"上海", "江苏省":"江蘇", "浙江省":"浙江", "安徽省":"安徽", "福建省":"福建", "江西省":"江西", "山东省":"山東", "河南省":"河南", "湖北省":"湖北", "湖南省":"湖南", "广东省":"廣東", "广西壮族自治区":"廣西", "海南省":"海南", "重庆市":"重慶", "四川省":"四川", "贵州省":"貴州", "云南省":"雲南", "西藏自治区":"西藏", "陕西省":"陝西", "甘肃省":"甘肅", "青海省":"青海", "宁夏回族自治区":"寧夏", "新疆维吾尔自治区":"新疆" };
     
     const chinaProvinces = Object.values(zhProvDict).concat(["香港", "澳門"]);
@@ -738,6 +808,95 @@
     }
     renderMarkers();
     document.getElementById('pptProgress').innerText = `0 / ${filteredStories.length}`;
+// --- 全域搜尋功能 ---
+function handleSearch() {
+  const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+  const resultsContainer = document.getElementById('searchResults');
+  resultsContainer.innerHTML = '';
+
+  if (!keyword) {
+    resultsContainer.style.display = 'none';
+    return;
+  }
+
+  // 跨分類搜尋所有資料：比對標題、地點與簡介
+  const matches = rawData.filter(story => 
+    (story.title && story.title.toLowerCase().includes(keyword)) ||
+    (story.location && story.location.toLowerCase().includes(keyword)) ||
+    (story.content && story.content.toLowerCase().includes(keyword))
+  );
+
+  if (matches.length === 0) {
+    resultsContainer.innerHTML = '<div style="padding: 12px 18px; color: #a6917c; text-align: center;">查無相關卷宗</div>';
+    resultsContainer.style.display = 'flex';
+    return;
+  }
+
+  // 產生搜尋結果列表
+  matches.forEach(match => {
+    const sType = match.type || "神話、童話";
+    const div = document.createElement('div');
+    div.className = 'search-result-item';
+    div.innerHTML = `
+      <div style="font-size: 1.5rem;">${match.icon}</div>
+      <div class="search-result-info">
+        <span class="search-result-title">${match.title}</span>
+        <span class="search-result-type">${sType} | ${match.location}</span>
+      </div>
+    `;
+    div.onclick = () => selectSearchResult(match.id);
+    resultsContainer.appendChild(div);
+  });
+
+  resultsContainer.style.display = 'flex';
+}
+
+function selectSearchResult(id) {
+  const story = rawData.find(s => s.id === id);
+  if (!story) return;
+
+  // 1. 隱藏搜尋結果並清空輸入框
+  document.getElementById('searchResults').style.display = 'none';
+  document.getElementById('searchInput').value = '';
+
+  // 2. 判斷並切換到該故事所屬的分類
+  const sType = story.type || "神話、童話";
+  const targetCatIndex = categories.indexOf(sType);
+  
+  if (targetCatIndex !== -1 && targetCatIndex !== currentCategoryIndex) {
+    currentCategoryIndex = targetCatIndex;
+    const badge = document.getElementById('categoryBadge');
+    badge.innerText = sType;
+    
+    // 同步切換分類徽章的顏色
+    if (sType === "神話、童話") { badge.style.borderColor = "#48cae4"; badge.style.color = "#48cae4"; } 
+    else if (sType === "節日起源") { badge.style.borderColor = "#ff595e"; badge.style.color = "#ff595e"; } 
+    else if (sType === "成語故事") { badge.style.borderColor = "#b5e48c"; badge.style.color = "#b5e48c"; } 
+    else { badge.style.borderColor = "#c77dff"; badge.style.color = "#e0aaff"; }
+
+    updateFilteredStories();
+    
+    // 清除舊的亮點與軌跡
+    activeRegions = []; hoverRegions = [];
+    poetTrajectoryGroup.clearLayers();
+    refreshHighlights();
+    renderMarkers();
+  }
+
+  // 3. 在當前分類中找出該故事的索引，並觸發跳轉
+  const targetIndex = filteredStories.findIndex(s => s.id === id);
+  if (targetIndex !== -1) {
+    goToStory(targetIndex);
+  }
+}
+
+// 點擊搜尋列以外的區域時，自動隱藏搜尋結果
+document.addEventListener('click', (e) => {
+  const searchContainer = document.querySelector('.search-container');
+  if (searchContainer && !searchContainer.contains(e.target)) {
+    document.getElementById('searchResults').style.display = 'none';
+  }
+});
   </script>
 </body>
 </html>
